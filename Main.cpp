@@ -24,16 +24,7 @@ GLUquadricObj	*e;
 
 void manejaEventosMain();
 void cargaConfiguracion();
-void guardaModelo();
-void cargaModelo();
-void actualizaCajaColPersonaje();
 
-//PARTÍCULAS -- cambio 1
-
-//Se crea el contenedor para almacenar los datos de cada partícula (ver estructura particles)
-//Al tener almacenados los datos para cada partícula se puede definir un patron de movimiento y tiempo
-//de desvanecimiento que puede ser igual, distinto o ligeramente distinto para cada partícula
-//Contenedor de particulas
 particles particle[MAX_PARTICULAS];	// Arreglo de partículas
 
 //Nombre y ubicación del modelo
@@ -277,7 +268,7 @@ void InicializaParametrosdeControl()
 								//sin aplicarle ninguna transformación (hacia adonde está volteando). Se elige un ángulo tal que al aplicarle
 								//una rotación inicial con respecto al eje Y esté viendo hacia la misma dirección que la definida por AngDir
 		
-	player1.PosicionObj=CVector(-80.0f, 0.0f, 10.0f); //Esta es la posición inicial del objeto en la escena
+	player1.PosicionObj=CVector(0.0f, 0.0f, 0.0f); //Esta es la posición inicial del objeto en la escena
 	player1.Direccion.x=(float)cos(player1.AngDir*PI/180.0f);
 	player1.Direccion.y=0.0f;
 	player1.Direccion.z=(float)sin(player1.AngDir*PI/180.0f);
@@ -723,168 +714,6 @@ void DatosAnimacion()
 
 }
 
-void inicializaPuntosdeControl()
-{
-	totalP=(20-3)*resolucion;
-	pSpAct=0;
-
-	puntosdeControl[0]=CVector(-40.0f, 6.0f, 50.0f);
-	puntosdeControl[1]=CVector(-30.0f, 16.0f, 40.0f);
-	puntosdeControl[2]=CVector(-30.0f, 23.0f, 30.0f);
-	puntosdeControl[3]=CVector(-25.0f, 36.0f, 25.0f);
-	puntosdeControl[4]=CVector(-22.0f, 44.0f, 21.0f);
-	puntosdeControl[5]=CVector(-18.0f, 50.0f, 17.0f);
-	puntosdeControl[6]=CVector(-12.0f, 17.0f, 15.0f);
-	puntosdeControl[7]=CVector(-4.0f, 16.0f, 23.0f);
-	puntosdeControl[8]=CVector(2.0f, 10.0f, 29.0f);
-	puntosdeControl[9]=CVector(4.0f, 25.0f, 32.0f);
-	puntosdeControl[10]=CVector(10.0f, 27.0f, 20.0f);
-	puntosdeControl[11]=CVector(20.0f, 40.0f, 10.0f);
-	puntosdeControl[12]=CVector(24.0f, 52.0f, 4.0f);
-	puntosdeControl[13]=CVector(28.0f, 35.0f, -10.0f);
-	puntosdeControl[14]=CVector(-35.0f, 40.0f, -19.0f);
-	puntosdeControl[15]=CVector(-100.0f, 50.0f, -7.0f);
-	puntosdeControl[16]=CVector(-120.0f, 50.0f, 10.0f);
-	puntosdeControl[17]=CVector(-110.0f, 40.0f, 10.0f);
-	puntosdeControl[18]=CVector(-90.0f, 30.0f, 50.0f);
-	puntosdeControl[19]=CVector(-80.0f, 18.0f, 10.0f);
-}
-
-void iniciaCajasdeColision()
-{
-	cajaPersonaje.pos=CVector(player1.PosicionObj.x, player1.PosicionObj.y+3.0f, player1.PosicionObj.z);
-	cajaPersonaje.tamaño=CVector(6.0f, 6.0f, 6.0f);
-	cajaPersonaje.xMin=cajaPersonaje.pos.x-cajaPersonaje.tamaño.x*0.5f;
-	cajaPersonaje.xMax=cajaPersonaje.pos.x+cajaPersonaje.tamaño.x*0.5f;
-	cajaPersonaje.yMin=cajaPersonaje.pos.y-cajaPersonaje.tamaño.y*0.5f;
-	cajaPersonaje.yMax=cajaPersonaje.pos.y+cajaPersonaje.tamaño.y*0.5f;
-	cajaPersonaje.zMin=cajaPersonaje.pos.z-cajaPersonaje.tamaño.z*0.5f;
-	cajaPersonaje.zMax=cajaPersonaje.pos.z+cajaPersonaje.tamaño.z*0.5f;
-
-	cajaEscenario[0].pos=CVector(-75.0f, -30.0f, 10.0f);
-	cajaEscenario[0].tamaño=CVector(30.0f, 60.0f, 20.0f);
-
-	cajaEscenario[1].pos=CVector(-67.5f, 7.5f, -10.0f);
-	cajaEscenario[1].tamaño=CVector(45.0f, 15.0f, 20.0f);
-
-	cajaEscenario[2].pos=CVector(-67.5f, 22.5f, -20.0f);
-	cajaEscenario[2].tamaño=CVector(45.0f, 15.0f, 20.0f);
-
-	cajaEscenario[3].pos=CVector(-52.5f, -25.0f, 5.0f);
-	cajaEscenario[3].tamaño=CVector(15.0f, 60.0f, 10.0f);
-
-	cajaEscenario[4].pos=CVector(-22.5f, 17.5f, -5.0f);
-	cajaEscenario[4].tamaño=CVector(45.0f, 25.0f, 10.0f);
-
-	cajaEscenario[5].pos=CVector(-22.5f, 4.0f, 11.0f);
-	cajaEscenario[5].tamaño=CVector(45.0f, 8.0f, 22.0f);
-
-	cajaEscenario[6].pos=CVector(-22.5f, -6.0f, 12.5f);
-	cajaEscenario[6].tamaño=CVector(45.0f, 20.0f, 25.0f);
-
-	for(int i=0; i<7; i++)
-	{
-		cajaEscenario[i].xMin=cajaEscenario[i].pos.x-cajaEscenario[i].tamaño.x*0.5f;
-		cajaEscenario[i].xMax=cajaEscenario[i].pos.x+cajaEscenario[i].tamaño.x*0.5f;
-		cajaEscenario[i].yMin=cajaEscenario[i].pos.y-cajaEscenario[i].tamaño.y*0.5f;
-		cajaEscenario[i].yMax=cajaEscenario[i].pos.y+cajaEscenario[i].tamaño.y*0.5f;
-		cajaEscenario[i].zMin=cajaEscenario[i].pos.z-cajaEscenario[i].tamaño.z*0.5f;
-		cajaEscenario[i].zMax=cajaEscenario[i].pos.z+cajaEscenario[i].tamaño.z*0.5f;
-	}
-}
-
-void dibujaCajaColision(cajaCol *caja)
-{
-	glDisable(GL_LIGHTING);
-	glColor3f(1.0f, 1.0f, 0.0f);
-	glLineWidth(3.0f);
-
-	glBegin(GL_LINE_LOOP);
-		glVertex3f(caja->xMin, caja->yMin, caja->zMax);
-		glVertex3f(caja->xMax, caja->yMin, caja->zMax);
-		glVertex3f(caja->xMax, caja->yMax, caja->zMax);
-		glVertex3f(caja->xMin, caja->yMax, caja->zMax);
-	glEnd();
-
-	glBegin(GL_LINE_LOOP);
-		glVertex3f(caja->xMin, caja->yMin, caja->zMin);
-		glVertex3f(caja->xMax, caja->yMin, caja->zMin);
-		glVertex3f(caja->xMax, caja->yMax, caja->zMin);
-		glVertex3f(caja->xMin, caja->yMax, caja->zMin);
-	glEnd();
-
-	glBegin(GL_LINES);
-		glVertex3f(caja->xMin, caja->yMax, caja->zMin);
-		glVertex3f(caja->xMin, caja->yMax, caja->zMax);
-
-		glVertex3f(caja->xMax, caja->yMax, caja->zMin);
-		glVertex3f(caja->xMax, caja->yMax, caja->zMax);
-
-		glVertex3f(caja->xMin, caja->yMin, caja->zMin);
-		glVertex3f(caja->xMin, caja->yMin, caja->zMax);
-
-		glVertex3f(caja->xMax, caja->yMin, caja->zMin);
-		glVertex3f(caja->xMax, caja->yMin, caja->zMax);
-	glEnd();
-
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glLineWidth(1.0f);
-	glEnable(GL_LIGHTING);
-}
-
-void iniciaEsferasdeColision()
-{
-	esferaPersonaje.estado=0;
-	esferaPersonaje.radio=3.0f;
-	esferaPersonaje.pos=CVector(player1.PosicionObj.x, player1.PosicionObj.y+3.0f, player1.PosicionObj.z);
-
-	esferaEnemigo.estado=0;
-	esferaEnemigo.radio=5.0f;
-	esferaEnemigo.pos=CVector(-70.0f, 5.0f, 15.0f);
-}
-
-//PARTÍCULAS -- cambio 3
-//Se definen los valores iniciales para las propiedades de cada partícula
-//Por ejemplo, si se desea que todas las partículas surjan de un punto la posición inicial debe ser 0
-//en cada eje para todas las partículas.
-//Si se desea que el punto de origen esté dentro de un área mas amplia que un punto, como una zona esférica
-//la posición inicial de cada particula se puede calcular de manera pseudoaleatoria limitando a un rango para
-//cada eje como se hace en la asignación inicial de velocidad en esta función
-
-//fade es la cantidad que se le restará al valor alpha del color de la partícula en cada ciclo de dibujo y
-//determina el tiempo de vida de la partícula. Si se quiere que todas las particulas duren lo mismo se le da un
-//valor constante y todas las partículas desapareceran antes de "revivir". Si se da un valor aleatorio algunas 
-//particulas moriran mientras otras continuan vivas, de esta forma el efecto se desvanece poco a poco mientras 
-//se sigue generando en la posición inicial en vez de terminar de manera abrupta y reiniciarse.
-
-//También se puede definir la gravedad para cada partícula. Dependiendo que tan grande sea el valor que se le da
-//se puede hacer que esa sea la dirección de movimiento o que sea la definida por la velocidad en cada eje pero
-//desviandose un poco al final hacia el eje con mas gravedad (se hace una curva)
-
-void InicializaParticulas()
-{
-	//Se inicializan los valores de la estructura de partículas
-	for (int loop=0; loop<MAX_PARTICULAS; loop++)				
-	{
-  		particle[loop].life=1.0f;
-  		particle[loop].fade=float(rand()%100)/1000.0f+0.005f;
-
-  		//Posicion inicial
-  		particle[loop].x = 0;
-  		particle[loop].y = 0;
-  		particle[loop].z = 0;
-
-  		//"Gravedad" inicial
-  		particle[loop].xg = 0;
-  		particle[loop].yg = 2.0f;
-  		particle[loop].zg = 0;
-
-      	particle[loop].xi = float((rand()%10)-5.0f);  // Direccion y velocidad en X
-  		particle[loop].yi = float((rand()%10)-5.0f);  // Direccion y velocidad en Y
-  		particle[loop].zi = float((rand()%10)-5.0f);  // Direccion y velocidad en Z
-	}
-}
-
 int IniGL(GLvoid)										// Aqui se configuran los parametros iniciales de OpenGL
 {
 	glShadeModel(GL_SMOOTH);							// Activa Smooth Shading
@@ -946,108 +775,13 @@ int IniGL(GLvoid)										// Aqui se configuran los parametros iniciales de Ope
 	sonidoF[1].cargaSonido("Audio/sonido.mp3", 0);
 	sonidoF[2].cargaSonido("Audio/intro.mp3", 0);
 
-	inicializaPuntosdeControl();
-	iniciaCajasdeColision();
-	iniciaEsferasdeColision();
-	/*
-	datosModelo.numObjetos=1;
-	datosModelo.obj=new objeto[datosModelo.numObjetos];
-
-	datosModelo.obj[0].numPlanos=2;
-	datosModelo.obj[0].pl=new plano[datosModelo.obj[0].numPlanos];
-
-	datosModelo.obj[0].pl[0].normal=CVector(0.0f, 0.0f, 1.0f);
-	datosModelo.obj[0].pl[0].vert[0].pos=CVector(-60.0f,  5.0f, 5.0f);
-	datosModelo.obj[0].pl[0].vert[1].pos=CVector(-40.0f,  5.0f, 5.0f);
-	datosModelo.obj[0].pl[0].vert[2].pos=CVector(-40.0f, 15.0f, 5.0f);
-	datosModelo.obj[0].pl[0].vert[3].pos=CVector(-60.0f, 15.0f, 5.0f);
-
-	datosModelo.obj[0].pl[1].normal=CVector(-1.0f, 0.0f, 0.0f);
-	datosModelo.obj[0].pl[1].vert[0].pos=CVector(-40.0f,  5.0f,  5.0f);
-	datosModelo.obj[0].pl[1].vert[1].pos=CVector(-40.0f,  5.0f, 15.0f);
-	datosModelo.obj[0].pl[1].vert[2].pos=CVector(-40.0f, 15.0f, 15.0f);
-	datosModelo.obj[0].pl[1].vert[3].pos=CVector(-40.0f, 15.0f,  5.0f);
-
-	guardaModelo();
-	*/
-	cargaModelo();
 
 	timerEstados.iniciaTimer();
-	InicializaParticulas();
+	//InicializaParticulas();
 
 	return TRUE;										
 }
 
-void colisionEsferas()
-{
-	int numEnemigos=1;
-
-	//for(int i=0; i<numEnemigos; i++)
-	//{
-	CVector vecCentros=esferaEnemigo.pos-esferaPersonaje.pos;
-	float dist=Magnitud(vecCentros);
-
-	if(dist < esferaEnemigo.radio+esferaPersonaje.radio)
-	{
-		esferaPersonaje.estado=1;
-		if(esferaEnemigo.estado == 0)
-		{
-			esferaEnemigo.estado=1;
-			sonidoF[1].reproduceSonido();
-		}
-	}
-	//}
-}
-
-void dibujaEsferadeColision(esferaCol *esfera)
-{
-	CVector vert[2];
-	CVector centro;
-
-	float ang, deltaAng;
-
-	deltaAng=360.0f/16;
-
-	glDisable(GL_LIGHTING);
-	if(esfera->estado == 0)
-		glColor3f(0.0f, 1.0f, 0.0f);
-	else if(esfera->estado == 1)
-		glColor3f(1.0f, 1.0f, 1.0f);
-
-	glLineWidth(3.0f);
-
-	glBegin(GL_LINE_STRIP);
-
-	for(int i=0; i<16; i++)
-	{
-		ang=i*deltaAng;
-		vert[0].x=esfera->pos.x+esfera->radio*cos(ang*PI/180.0f);
-		vert[0].y=esfera->pos.y+esfera->radio*sin(ang*PI/180.0f);
-		vert[0].z=esfera->pos.z;
-
-		glVertex3f(vert[0].x, vert[0].y, vert[0].z);
-
-		ang=(i+1)*deltaAng;
-		vert[1].x=esfera->pos.x+esfera->radio*cos(ang*PI/180.0f);
-		vert[1].y=esfera->pos.y+esfera->radio*sin(ang*PI/180.0f);
-		vert[1].z=esfera->pos.z;
-
-		centro=esfera->pos;
-		
-		
-	}
-
-	glEnd();
-
-	glEnable(GL_LIGHTING);
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glLineWidth(1.0f);
-}
-
-void actualizaEsferasdeColision()
-{
-	esferaPersonaje.pos=CVector(player1.PosicionObj.x, player1.PosicionObj.y+3.0f, player1.PosicionObj.z);
-}
 
 void obtieneAltPiso()
 {
@@ -1078,269 +812,43 @@ void obtieneAltPiso()
 	}
 }
 
-bool colisionCajas(int dir)
-{
-	bool col=false;
-	CVector pSig;
-	CVector A, B, C, D, E, F, G, H;
-
-	for(int i=0; i<numCajas; i++)
-	{
-		if(dir == 1) //x+
-		{
-			pSig.x=player1.PosicionObj.x+player1.VelocidadObj;
-			pSig.y=player1.PosicionObj.y;
-			pSig.z=player1.PosicionObj.z;
-		}
-		else if(dir == 2) //x-
-		{
-			pSig.x=player1.PosicionObj.x-player1.VelocidadObj;
-			pSig.y=player1.PosicionObj.y;
-			pSig.z=player1.PosicionObj.z;
-		}
-		else if(dir == 3) //z+
-		{
-			pSig.x=player1.PosicionObj.x;
-			pSig.y=player1.PosicionObj.y;
-			pSig.z=player1.PosicionObj.z+player1.VelocidadObj;
-		}
-		else if(dir == 4) //z-
-		{
-			pSig.x=player1.PosicionObj.x;
-			pSig.y=player1.PosicionObj.y;
-			pSig.z=player1.PosicionObj.z-player1.VelocidadObj;
-		}
-		else if(dir == 5) //y+
-		{
-			pSig.x=player1.PosicionObj.x;
-			pSig.y=player1.PosicionObj.y+player1.VelocidadObj;
-			pSig.z=player1.PosicionObj.z;
-		}
-		else if(dir == 6) //y-
-		{
-			pSig.x=player1.PosicionObj.x;
-			pSig.y=player1.PosicionObj.y-player1.VelocidadObj;
-			pSig.z=player1.PosicionObj.z;
-		}
-
-		cajaPersonaje.pos=CVector(pSig.x, pSig.y+3.0f, pSig.z);
-		cajaPersonaje.xMin=cajaPersonaje.pos.x-cajaPersonaje.tamaño.x*0.5f;
-		cajaPersonaje.xMax=cajaPersonaje.pos.x+cajaPersonaje.tamaño.x*0.5f;
-		cajaPersonaje.yMin=cajaPersonaje.pos.y-cajaPersonaje.tamaño.y*0.5f;
-		cajaPersonaje.yMax=cajaPersonaje.pos.y+cajaPersonaje.tamaño.y*0.5f;
-		cajaPersonaje.zMin=cajaPersonaje.pos.z-cajaPersonaje.tamaño.z*0.5f;
-		cajaPersonaje.zMax=cajaPersonaje.pos.z+cajaPersonaje.tamaño.z*0.5f;
-
-		//Inf-izq-front
-		A.x=cajaPersonaje.xMin;
-		A.y=cajaPersonaje.yMin;
-		A.z=cajaPersonaje.zMax;
-
-		//Inf-der-front
-		B.x=cajaPersonaje.xMax;
-		B.y=cajaPersonaje.yMin;
-		B.z=cajaPersonaje.zMax;
-
-		//Sup-der-front
-		C.x=cajaPersonaje.xMax;
-		C.y=cajaPersonaje.yMax;
-		C.z=cajaPersonaje.zMax;
-
-		//Sup-izq-front
-		D.x=cajaPersonaje.xMin;
-		D.y=cajaPersonaje.yMax;
-		D.z=cajaPersonaje.zMax;
-
-		//Inf-izq-tras
-		E.x=cajaPersonaje.xMin;
-		E.y=cajaPersonaje.yMin;
-		E.z=cajaPersonaje.zMin;
-
-		//Inf-der-tras
-		F.x=cajaPersonaje.xMax;
-		F.y=cajaPersonaje.yMin;
-		F.z=cajaPersonaje.zMin;
-
-		//Sup-der-tras
-		G.x=cajaPersonaje.xMax;
-		G.y=cajaPersonaje.yMax;
-		G.z=cajaPersonaje.zMin;
-
-		//Sup-izq-tras
-		H.x=cajaPersonaje.xMin;
-		H.y=cajaPersonaje.yMax;
-		H.z=cajaPersonaje.zMin;
-
-		if((A.x > cajaEscenario[i].xMin && A.x < cajaEscenario[i].xMax && A.y > cajaEscenario[i].yMin && A.y < cajaEscenario[i].yMax && A.z > cajaEscenario[i].zMin && A.z < cajaEscenario[i].zMax)
-			|| (B.x > cajaEscenario[i].xMin && B.x < cajaEscenario[i].xMax && B.y > cajaEscenario[i].yMin && B.y < cajaEscenario[i].yMax && B.z > cajaEscenario[i].zMin && B.z < cajaEscenario[i].zMax)
-			|| (C.x > cajaEscenario[i].xMin && C.x < cajaEscenario[i].xMax && C.y > cajaEscenario[i].yMin && C.y < cajaEscenario[i].yMax && C.z > cajaEscenario[i].zMin && C.z < cajaEscenario[i].zMax)
-			|| (D.x > cajaEscenario[i].xMin && D.x < cajaEscenario[i].xMax && D.y > cajaEscenario[i].yMin && D.y < cajaEscenario[i].yMax && D.z > cajaEscenario[i].zMin && D.z < cajaEscenario[i].zMax)
-			|| (E.x > cajaEscenario[i].xMin && E.x < cajaEscenario[i].xMax && E.y > cajaEscenario[i].yMin && E.y < cajaEscenario[i].yMax && E.z > cajaEscenario[i].zMin && E.z < cajaEscenario[i].zMax)
-			|| (F.x > cajaEscenario[i].xMin && F.x < cajaEscenario[i].xMax && F.y > cajaEscenario[i].yMin && F.y < cajaEscenario[i].yMax && F.z > cajaEscenario[i].zMin && F.z < cajaEscenario[i].zMax)
-			|| (G.x > cajaEscenario[i].xMin && G.x < cajaEscenario[i].xMax && G.y > cajaEscenario[i].yMin && G.y < cajaEscenario[i].yMax && G.z > cajaEscenario[i].zMin && G.z < cajaEscenario[i].zMax)
-			|| (H.x > cajaEscenario[i].xMin && H.x < cajaEscenario[i].xMax && H.y > cajaEscenario[i].yMin && H.y < cajaEscenario[i].yMax && H.z > cajaEscenario[i].zMin && H.z < cajaEscenario[i].zMax))
-		{
-			col=true;
-			
-			if(dir == 1) //x+
-				player1.PosicionObj.x=cajaEscenario[i].xMin-cajaPersonaje.tamaño.x*0.5f;
-			else if(dir == 2) //x-
-				player1.PosicionObj.x=cajaEscenario[i].xMax+cajaPersonaje.tamaño.x*0.5f;
-			else if(dir == 3) //z+
-				player1.PosicionObj.z=cajaEscenario[i].zMin-cajaPersonaje.tamaño.z*0.5f;
-			else if(dir == 4) //z-
-				player1.PosicionObj.z=cajaEscenario[i].zMax+cajaPersonaje.tamaño.z*0.5f;
-			else if(dir == 5) //y+
-				player1.PosicionObj.y=cajaEscenario[i].yMin-cajaPersonaje.tamaño.y*0.5f-3.0f;
-			else if(dir == 6) //y-
-				player1.PosicionObj.y=cajaEscenario[i].yMax;
-		
-			break;
-		}
-	}
-
-	return col;
-}
-
-void actualizaMovPersonaje()
-{
-	static int tiempoColPersonaje=0;
-	static int tiempoColEnemigo=0;
-
-	actualizaCajaColPersonaje();
-	
-	if(esferaPersonaje.estado == 1)
-	{
-		if(tiempoColPersonaje < 20)
-			tiempoColPersonaje++;
-		else
-		{
-			tiempoColPersonaje=0;
-			esferaPersonaje.estado=0;
-		}
-	}
-
-	if(esferaEnemigo.estado == 1)
-	{
-		if(tiempoColEnemigo < 20)
-			tiempoColEnemigo++;
-		else
-		{
-			tiempoColEnemigo=0;
-			esferaEnemigo.estado=0;
-		}
-	}
-
-	if(player1.saltando == false)
-		obtieneAltPiso();
-
-	if(player1.caminando == true)
-	{
-		if(player1.dirX == 1)
-		{
-			if(!colisionCajas(1))
-				player1.PosicionObj.x+=player1.VelocidadObj;
-			else
-				player1.caminando=false;
-		}
-		else if(player1.dirX == 2)
-		{
-			if(!colisionCajas(2))
-				player1.PosicionObj.x-=player1.VelocidadObj;
-			else
-				player1.caminando=false;
-		}
-
-		if(player1.dirZ == 1)
-		{
-			if(!colisionCajas(3))
-				player1.PosicionObj.z+=player1.VelocidadObj;
-			else
-				player1.caminando=false;
-		}
-		else if(player1.dirZ == 2)
-		{
-			if(!colisionCajas(4))
-				player1.PosicionObj.z-=player1.VelocidadObj;
-			else
-				player1.caminando=false;
-		}
-	}
-
-	if(player1.saltando == true)
-	{
-		if(player1.PosicionObj.y < altPiso+10.0f)
-		{
-			if(!colisionCajas(5))
-				player1.PosicionObj.y+=player1.VelocidadObj;
-			else
-			{
-				player1.saltando=false;
-				player1.cayendo=true;
-			}
-		}
-		else
-		{
-			player1.saltando=false;
-			player1.cayendo=true;
-		}
-	}
-	
-	if(player1.cayendo == true)
-	{
-		if(player1.PosicionObj.y > altMin)
-		{
-			if(!colisionCajas(6))
-				player1.PosicionObj.y-=player1.VelocidadObj;
-		}
-		else
-		{
-			player1.PosicionObj.y=altMin;
-			altPiso=altMin;
-		}
-	}
-
-	actualizaEsferasdeColision();
-	colisionEsferas();
-}
-
 void controlEstados()
 {
-	if(infGame.estadoJuego == 1) //Logo estudio
+	if (infGame.estadoJuego == 1) //Logo estudio
 	{
-		if(timerEstados.TiempoActual() > 3000)
+		if (timerEstados.TiempoActual() > 3000)
 		{
-			infGame.tiempoEstado=0;
-			infGame.estadoJuego=6;
+			infGame.tiempoEstado = 0;
+			infGame.estadoJuego = 5;
 		}
 	}
-	else if(infGame.estadoJuego == 2) //Pantalla de carga
+	else if (infGame.estadoJuego == 2) //Pantalla de carga
 	{
-		if(timerEstados.TiempoActual() > 6000)
-			infGame.cargaArchivosCompleta=1;
-			
-		if(infGame.cargaArchivosCompleta == 1)
+		if (timerEstados.TiempoActual() > 6000)
+			infGame.cargaArchivosCompleta = 1;
+
+		if (infGame.cargaArchivosCompleta == 1)
 		{
-			infGame.tiempoEstado=0;
-			infGame.estadoJuego=3;
+			infGame.tiempoEstado = 0;
+			infGame.estadoJuego = 3;
 			sonidoF[2].volumenSonido(0.5f);
 			sonidoF[2].pausaSonido(false);
 		}
 	}
-	else if(infGame.estadoJuego == 3) //introduccion del juego
+	else if (infGame.estadoJuego == 3) //introduccion del juego
 	{
-		if(timerEstados.TiempoActual() > 28000)
+		if (timerEstados.TiempoActual() > 28000)
 		{
-			infGame.tiempoEstado=0;
-			infGame.estadoJuego=4;
+			infGame.tiempoEstado = 0;
+			infGame.estadoJuego = 4;
 		}
 	}
-	else if(infGame.estadoJuego == 4) //Título del juego
+	else if (infGame.estadoJuego == 4) //Título del juego
 	{
-		if(timerEstados.TiempoActual() > 31000)
+		if (timerEstados.TiempoActual() > 31000)
 		{
-			infGame.tiempoEstado=0;
-			infGame.estadoJuego=5;
+			infGame.tiempoEstado = 0;
+			infGame.estadoJuego = 5;
 			timerEstados.detieneTimer();
 		}
 	}
@@ -1435,91 +943,6 @@ void ActualizaCamara()
 
 void ControlPersonaje(int funcion)
 {
-	if(funcion == 1) //Giro a la derecha
-	{
-		player1.AngDir+=1.0f;
-		if(player1.AngDir > 360.0f)
-			player1.AngDir-=360.0f;
-
-		player1.AngObj-=1.0f;
-		if(player1.AngObj < 0.0f)
-			player1.AngObj+=360.0f;
-
-		player1.Direccion.x=(float)cos(player1.AngDir*PI/180.0f);
-		player1.Direccion.y=0.0f;
-		player1.Direccion.z=(float)sin(player1.AngDir*PI/180.0f);
-	}
-	else if(funcion == 2) //Giro a la izquierda
-	{
-		player1.AngDir-=1.0f;
-		if(player1.AngDir < 0.0f)
-			player1.AngDir+=360.0f;
-
-		player1.AngDirCam-=1.0f;
-		if(player1.AngDirCam < 0.0f)
-			player1.AngDirCam+=360.0f;
-		
-		player1.AngObj+=1.0f;
-		if(player1.AngObj > 360.0f)
-			player1.AngObj-=360.0f;
-
-		player1.Direccion.x=(float)cos(player1.AngDir*PI/180.0f);
-		player1.Direccion.y=0.0f;
-		player1.Direccion.z=(float)sin(player1.AngDir*PI/180.0f);
-	
-	}
-	else if(funcion == 3) //Avanza hacia adelante
-	{
-		player1.PosicionObj=player1.PosicionObj+player1.Direccion*player1.VelocidadObj;
-		player1.PosicionCam=player1.PosicionObj-player1.DireccionCam*player1.DistanciaCam;
-		player1.PosicionCam.y=player1.CamaraPosAlt;
-		player1.ObjetivoCam=player1.PosicionObj;
-		player1.ObjetivoCam.y=player1.CamaraObjAlt;
-
-		player1.PosicionObjAnt=player1.PosicionObj;
-
-		ActualizaCamara();
-
-	}
-	else if(funcion == 4) //Avanza hacia atrás
-	{
-		player1.PosicionObj=player1.PosicionObj-player1.Direccion*player1.VelocidadObj;
-		player1.PosicionCam=player1.PosicionObj-player1.DireccionCam*player1.DistanciaCam;
-		player1.PosicionCam.y=player1.CamaraPosAlt;
-		player1.ObjetivoCam=player1.PosicionObj;
-		player1.ObjetivoCam.y=player1.CamaraObjAlt;
-
-		player1.PosicionObjAnt=player1.PosicionObj;
-
-		ActualizaCamara();
-
-	}
-	else if(funcion == 5) //Sube objetivo de la cámara
-	{
-		camara1.ObjetivoCam.y+=1.0f;
-		player1.CamaraObjAlt+=1.0f;
-	}
-	else if(funcion == 6) //Baja objetivo de la cámara
-	{
-		camara1.ObjetivoCam.y-=1.0f;
-		player1.CamaraObjAlt-=1.0f;
-	}
-	
-}
-
-void actualizaCajaColPersonaje()
-{
-	cajaPersonaje.pos=CVector(player1.PosicionObj.x, player1.PosicionObj.y+3.0f, player1.PosicionObj.z);
-	cajaPersonaje.xMin=cajaPersonaje.pos.x-cajaPersonaje.tamaño.x*0.5f;
-	cajaPersonaje.xMax=cajaPersonaje.pos.x+cajaPersonaje.tamaño.x*0.5f;
-	cajaPersonaje.yMin=cajaPersonaje.pos.y-cajaPersonaje.tamaño.y*0.5f;
-	cajaPersonaje.yMax=cajaPersonaje.pos.y+cajaPersonaje.tamaño.y*0.5f;
-	cajaPersonaje.zMin=cajaPersonaje.pos.z-cajaPersonaje.tamaño.z*0.5f;
-	cajaPersonaje.zMax=cajaPersonaje.pos.z+cajaPersonaje.tamaño.z*0.5f;
-}
-
-void ControlPersonaje2(int funcion)
-{
 	if(funcion == 1) //Avanza a la derecha (x+)
 	{
 		player1.PosicionObj.x+=player1.VelocidadObj;
@@ -1540,42 +963,6 @@ void ControlPersonaje2(int funcion)
 		player1.PosicionObj.z+=player1.VelocidadObj;
 		player1.AngObj=0.0f;
 	}
-
-	actualizaCajaColPersonaje();
-}
-
-void ControlPersonaje2D(int funcion)
-{
-	if(funcion == 1) //Avanza a la derecha
-	{
-		player1.AngObj=90.0f;
-
-		player1.Direccion=CVector(1.0f,0.0f,0.0f);
-
-		player1.PosicionObj=player1.PosicionObj+player1.Direccion*player1.VelocidadObj;
-		player1.PosicionCam=player1.PosicionObj-player1.DireccionCam*player1.DistanciaCam;
-		player1.PosicionCam.y=player1.CamaraPosAlt;
-		player1.ObjetivoCam=player1.PosicionObj;
-		player1.ObjetivoCam.y=player1.CamaraObjAlt;
-
-		player1.PosicionObjAnt=player1.PosicionObj;
-
-	}
-	else if(funcion == 2) //Giro a la izquierda
-	{
-		player1.AngObj=270.0f;
-
-		player1.Direccion=CVector(-1.0f,0.0f,0.0f);
-
-		player1.PosicionObj=player1.PosicionObj+player1.Direccion*player1.VelocidadObj;
-		player1.PosicionCam=player1.PosicionObj-player1.DireccionCam*player1.DistanciaCam;
-		player1.PosicionCam.y=player1.CamaraPosAlt;
-		player1.ObjetivoCam=player1.PosicionObj;
-		player1.ObjetivoCam.y=player1.CamaraObjAlt;
-
-		player1.PosicionObjAnt=player1.PosicionObj;
-	}
-	
 }
 
 void DibujaEjes()
@@ -1674,635 +1061,21 @@ void DibujaCaja(int tipo)
 	glDisable(GL_TEXTURE_2D);
 }
 
-void DibujaTransportadora()
-{
-	CVector V1, V2, N;
-	static float animTs=0.0f;
-
-	glEnable(GL_TEXTURE_2D);
-
-	//Banda transportadora cara superior
-	glBindTexture(GL_TEXTURE_2D, textura[24].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f-animTs, 0.0f); glVertex3f(-8.0f, 1.5f,  3.0f);
-		glTexCoord2f(4.0f-animTs, 0.0f); glVertex3f( 8.0f, 1.5f,  3.0f);
-		glTexCoord2f(4.0f-animTs, 1.0f); glVertex3f( 8.0f, 1.5f, -3.0f);
-		glTexCoord2f(0.0f-animTs, 1.0f); glVertex3f(-8.0f, 1.5f, -3.0f);
-	glEnd();
-
-	//Banda transportadora cara izquierda inclinada
-	
-	V1=CVector(-8.0f, 1.5f,  3.0f)-CVector(-9.0f, 1.3f,  3.0f);
-	V2=CVector(-9.0f, 1.3f, -3.0f)-CVector(-9.0f, 1.3f,  3.0f);
-	N=Normaliza(Cruz(V1, V2));
-
-	glBegin(GL_QUADS);
-		glNormal3f(N.x,N.y,N.z);
-		glTexCoord2f(0.6f-animTs, 0.0f); glVertex3f(-9.0f, 1.0f,  3.0f);
-		glTexCoord2f(1.0f-animTs, 0.0f); glVertex3f(-8.0f, 1.5f,  3.0f);
-		glTexCoord2f(1.0f-animTs, 1.0f); glVertex3f(-8.0f, 1.5f, -3.0f);
-		glTexCoord2f(0.6f-animTs, 1.0f); glVertex3f(-9.0f, 1.0f, -3.0f);
-	glEnd();
-	
-	//Banda transportadora cara izquierda vertical
-	
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f-animTs, 0.0f); glVertex3f(-9.0f, -0.5f,  3.0f);
-		glTexCoord2f(0.6f-animTs, 0.0f); glVertex3f(-9.0f,  1.0f,  3.0f);
-		glTexCoord2f(0.6f-animTs, 1.0f); glVertex3f(-9.0f,  1.0f, -3.0f);
-		glTexCoord2f(0.0f-animTs, 1.0f); glVertex3f(-9.0f, -0.5f, -3.0f);
-	glEnd();
-
-	//Banda transportadora cara derecha inclinada
-	
-	V1=CVector(9.0f, 1.0f,  3.0f)-CVector(8.0f, 1.5f,  3.0f);
-	V2=CVector(8.0f, 1.5f, -3.0f)-CVector(8.0f, 1.5f,  3.0f);
-	N=Normaliza(Cruz(V1, V2));
-
-	glBegin(GL_QUADS);
-		glNormal3f(N.x,N.y,N.z);
-		glTexCoord2f(0.0f-animTs, 0.0f); glVertex3f(8.0f, 1.5f,  3.0f);
-		glTexCoord2f(0.4f-animTs, 0.0f); glVertex3f(9.0f, 1.0f,  3.0f);
-		glTexCoord2f(0.4f-animTs, 1.0f); glVertex3f(9.0f, 1.0f, -3.0f);
-		glTexCoord2f(0.0f-animTs, 1.0f); glVertex3f(8.0f, 1.5f, -3.0f);
-	glEnd();
-
-	//Banda transportadora cara frontal 1
-	glBindTexture(GL_TEXTURE_2D, textura[23].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-7.0f, -1.5f, 3.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-4.0f, -1.5f, 3.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-4.0f,  1.5f, 3.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-7.0f,  1.5f, 3.0f);
-	glEnd();
-
-	//Banda transportadora cara frontal 2
-	glBindTexture(GL_TEXTURE_2D, textura[22].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-4.0f, -1.5f, 3.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f( 7.0f, -1.5f, 3.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f( 7.0f,  1.5f, 3.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-4.0f,  1.5f, 3.0f);
-	glEnd();
-
-	glDisable(GL_TEXTURE_2D);
-
-	glDisable(GL_LIGHTING);
-
-	glColor3f(0.0f,0.0f,0.0f);
-
-	glBegin(GL_POLYGON);
-		glVertex3f(-7.0f, -1.5f, 3.0f);
-		glVertex3f(-7.0f,  1.5f, 3.0f);
-		glVertex3f(-8.0f,  1.5f, 3.0f);
-		glVertex3f(-9.0f,  1.0f, 3.0f);
-		glVertex3f(-9.0f, -0.5f, 3.0f);
-	glEnd();
-
-	glBegin(GL_POLYGON);
-		glVertex3f(7.0f, -1.5f, 3.0f);
-		glVertex3f(9.0f, -0.5f, 3.0f);
-		glVertex3f(9.0f,  1.0f, 3.0f);
-		glVertex3f(8.0f,  1.5f, 3.0f);
-		glVertex3f(7.0f,  1.5f, 3.0f);
-	glEnd();
-/*
-	glBegin(GL_QUADS);
-		glVertex3f(-7.0f, -1.5f, 3.0f);
-		glVertex3f(-3.0f, -1.5f, 3.0f);
-		glVertex3f(-3.0f,  1.5f, 3.0f);
-		glVertex3f(-7.0f,  1.5f, 3.0f);
-	glEnd();
-*/
-	glColor3f(1.0f,1.0f,1.0f);
-
-	glEnable(GL_LIGHTING);
-
-	if(animTs < 1.0f)
-		animTs+=0.01f;
-	else
-		animTs=0.0f;
-}
-
-void dibujaCamara()
-{
-	glPushMatrix();
-		glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
-		gluCylinder(e, 1.0f, 1.0f, 5.0f, 12, 1);
-		glPushMatrix();
-			glTranslatef(0.0f, 0.0f, 5.0f);
-			gluDisk(e, 0.0f, 1.0f, 12, 1);
-		glPopMatrix();
-	glPopMatrix();
-}
-
-void ejemploDeteccionCamara()
-{
-	glPushMatrix();
-		glTranslatef(posCamV.x, posCamV.y, posCamV.z);
-		glRotatef(20.0f, 1.0f, 0.0f, 0.0f);
-		dibujaCamara();
-	glPopMatrix();
-
-	vecCamVPl=Normaliza(player1.PosicionObj-posCamV);
-
-	float p=Punto(vecCamVPl, dirCamV);
-
-	if(p > 0.5f)
-		detectado=1;
-	else
-		detectado=0;
-	
-}
 
 void DibujaEscenario()
 {
-	//-- Aquí comienzan los planos con textura
 	glEnable(GL_TEXTURE_2D);
-
-	//Plano 1 (pared 1)
-	glBindTexture(GL_TEXTURE_2D, textura[2].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-90.0f, 20.0f, -20.0f);
-		glTexCoord2f(8.0f, 0.0f); glVertex3f( 80.0f, 20.0f, -20.0f);
-		glTexCoord2f(8.0f, 5.0f); glVertex3f( 80.0f, 80.0f, -20.0f);
-		glTexCoord2f(0.0f, 5.0f); glVertex3f(-90.0f, 80.0f, -20.0f);
-	glEnd();
 
 	//Plano 2 (piso 1)
 	glBindTexture(GL_TEXTURE_2D, textura[4].texID);
 
 	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.1f, 0.0f); glVertex3f(-90.0f, 0.0f, 20.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-60.0f, 0.0f, 20.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-60.0f, 0.0f,  0.0f);
-		glTexCoord2f(0.1f, 1.0f); glVertex3f(-90.0f, 0.0f,  0.0f);
+	glNormal3f(0.0f, 1.0f, 0.0f);
+	glTexCoord2f(0.1f, 0.0f); glVertex3f(-30.0f, 0.0f, 60.0f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(30.0f, 0.0f, 60.0f);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(30.0f, 0.0f, 0.0f);
+	glTexCoord2f(0.1f, 1.0f); glVertex3f(-30.0f, 0.0f, 0.0f);
 	glEnd();
-
-	//Plano 3 (pared 2)
-	glBindTexture(GL_TEXTURE_2D, textura[3].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-90.0f,  0.0f, 0.0f);
-		glTexCoord2f(3.0f, 0.0f); glVertex3f(-60.0f,  0.0f, 0.0f);
-		glTexCoord2f(3.0f, 1.0f); glVertex3f(-60.0f, 15.0f, 0.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-90.0f, 15.0f, 0.0f);
-	glEnd();
-
-	//Plano 4 (pared 3)
-	glBindTexture(GL_TEXTURE_2D, textura[0].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-60.0f,  5.0f, 0.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-45.0f,  5.0f, 0.0f);
-		glTexCoord2f(1.0f, 0.7f); glVertex3f(-45.0f, 15.0f, 0.0f);
-		glTexCoord2f(0.0f, 0.7f); glVertex3f(-60.0f, 15.0f, 0.0f);
-	glEnd();
-
-	//Plano 5 (pared 4)
-	glBindTexture(GL_TEXTURE_2D, textura[0].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(-0.6f, 0.0f); glVertex3f(-90.0f, 15.0f, -10.0f);
-		glTexCoord2f( 1.4f, 0.0f); glVertex3f(-45.0f, 15.0f, -10.0f);
-		glTexCoord2f( 1.4f, 1.0f); glVertex3f(-45.0f, 30.0f, -10.0f);
-		glTexCoord2f(-0.6f, 1.0f); glVertex3f(-90.0f, 30.0f, -10.0f);
-	glEnd();
-
-	//Plano 6 (piso 2)
-	glBindTexture(GL_TEXTURE_2D, textura[1].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-90.0f, 15.0f,   0.0f);
-		glTexCoord2f(2.5f, 0.0f); glVertex3f(-45.0f, 15.0f,   0.0f);
-		glTexCoord2f(2.5f, 1.0f); glVertex3f(-45.0f, 15.0f, -10.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-90.0f, 15.0f, -10.0f);
-	glEnd();
-
-	//Plano 7 (pared 5)
-	glBindTexture(GL_TEXTURE_2D, textura[16].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.5f); glVertex3f(-90.0f, -20.0f, 20.0f);
-		glTexCoord2f(1.0f, 0.5f); glVertex3f(-60.0f, -20.0f, 20.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-60.0f,   0.0f, 20.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-90.0f,   0.0f, 20.0f);
-	glEnd();
-
-	//Plano 8 (bloque piso)
-	glBindTexture(GL_TEXTURE_2D, textura[5].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-60.0f, 5.0f, 10.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-45.0f, 5.0f, 10.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-45.0f, 5.0f,  0.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-60.0f, 5.0f,  0.0f);
-	glEnd();
-
-	//Plano 9 (bloque pared front)
-	glBindTexture(GL_TEXTURE_2D, textura[6].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-60.0f, 0.0f, 10.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-45.0f, 0.0f, 10.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-45.0f, 5.0f, 10.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-60.0f, 5.0f, 10.0f);
-	glEnd();
-
-	//Plano 10 (bloque pared izq)
-	glBindTexture(GL_TEXTURE_2D, textura[6].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-60.0f, 0.0f,  0.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-60.0f, 0.0f, 10.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-60.0f, 5.0f, 10.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-60.0f, 5.0f,  0.0f);
-	glEnd();
-
-	//Plano 11 (pared 6)
-	glBindTexture(GL_TEXTURE_2D, textura[12].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-60.0f, -20.0f, 10.0f);
-		glTexCoord2f(4.0f, 0.0f); glVertex3f(-45.0f, -20.0f, 10.0f);
-		glTexCoord2f(4.0f, 8.0f); glVertex3f(-45.0f,   0.0f, 10.0f);
-		glTexCoord2f(0.0f, 8.0f); glVertex3f(-60.0f,   0.0f, 10.0f);
-	glEnd();
-
-	//Plano 12 (pared 7)
-	glBindTexture(GL_TEXTURE_2D, textura[12].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-60.0f, -20.0f, 20.0f);
-		glTexCoord2f(4.0f, 0.0f); glVertex3f(-60.0f, -20.0f, 10.0f);
-		glTexCoord2f(4.0f, 8.0f); glVertex3f(-60.0f,   0.0f, 10.0f);
-		glTexCoord2f(0.0f, 8.0f); glVertex3f(-60.0f,   0.0f, 20.0f);
-	glEnd();
-
-	//Plano 13 (pared 8)
-	glBindTexture(GL_TEXTURE_2D, textura[7].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-45.0f, 15.0f, -10.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-45.0f, 15.0f,   0.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-45.0f, 30.0f,   0.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-45.0f, 30.0f, -10.0f);
-	glEnd();
-
-	//Plano 14 (pared 9)
-	glBindTexture(GL_TEXTURE_2D, textura[8].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-45.0f,  5.0f, 0.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(  0.0f,  5.0f, 0.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(  0.0f, 30.0f, 0.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-45.0f, 30.0f, 0.0f);
-	glEnd();
-
-	//Plano 15 (piso 3)
-	glBindTexture(GL_TEXTURE_2D, textura[1].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-45.0f, 30.0f,   0.0f);
-		glTexCoord2f(2.5f, 0.0f); glVertex3f(  0.0f, 30.0f,   0.0f);
-		glTexCoord2f(2.5f, 1.0f); glVertex3f(  0.0f, 30.0f, -10.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-45.0f, 30.0f, -10.0f);
-	glEnd();
-
-	//Plano 16 (piso 4)
-	glBindTexture(GL_TEXTURE_2D, textura[11].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f( 0.0f, 0.0f); glVertex3f(-45.0f, 8.0f, 22.0f);
-		glTexCoord2f(14.0f, 0.0f); glVertex3f(  0.0f, 8.0f, 22.0f);
-		glTexCoord2f(14.0f, 5.0f); glVertex3f(  0.0f, 8.0f,  0.0f);
-		glTexCoord2f( 0.0f, 5.0f); glVertex3f(-45.0f, 8.0f,  0.0f);
-	glEnd();
-
-	//Plano 17 (pared 10)
-	glBindTexture(GL_TEXTURE_2D, textura[10].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-45.0f, 4.0f,  0.0f);
-		glTexCoord2f(5.0f, 0.0f); glVertex3f(-45.0f, 4.0f, 22.0f);
-		glTexCoord2f(5.0f, 2.0f); glVertex3f(-45.0f, 8.0f, 22.0f);
-		glTexCoord2f(0.0f, 2.0f); glVertex3f(-45.0f, 8.0f,  0.0f);
-	glEnd();
-
-	//Plano 18 (pared 11)
-	glBindTexture(GL_TEXTURE_2D, textura[9].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f( 0.0f, 0.0f); glVertex3f(-45.0f, 4.0f, 22.0f);
-		glTexCoord2f(14.0f, 0.0f); glVertex3f(  0.0f, 4.0f, 22.0f);
-		glTexCoord2f(14.0f, 2.0f); glVertex3f(  0.0f, 8.0f, 22.0f);
-		glTexCoord2f( 0.0f, 2.0f); glVertex3f(-45.0f, 8.0f, 22.0f);
-	glEnd();
-
-	//Plano 19 (piso 5)
-	glBindTexture(GL_TEXTURE_2D, textura[11].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f( 0.0f, 0.0f); glVertex3f(-45.0f, 4.0f, 25.0f);
-		glTexCoord2f(14.0f, 0.0f); glVertex3f(  0.0f, 4.0f, 25.0f);
-		glTexCoord2f(14.0f, 1.0f); glVertex3f(  0.0f, 4.0f, 22.0f);
-		glTexCoord2f( 0.0f, 1.0f); glVertex3f(-45.0f, 4.0f, 22.0f);
-	glEnd();
-
-	//Plano 20 (pared 12)
-	glBindTexture(GL_TEXTURE_2D, textura[10].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-45.0f, -6.0f,  0.0f);
-		glTexCoord2f(6.0f, 0.0f); glVertex3f(-45.0f, -6.0f, 25.0f);
-		glTexCoord2f(6.0f, 5.0f); glVertex3f(-45.0f,  4.0f, 25.0f);
-		glTexCoord2f(0.0f, 5.0f); glVertex3f(-45.0f,  4.0f,  0.0f);
-	glEnd();
-
-	//Plano 21 (pared 13)
-	glBindTexture(GL_TEXTURE_2D, textura[9].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f( 0.0f, 0.0f); glVertex3f(-45.0f, -6.0f, 25.0f);
-		glTexCoord2f(14.0f, 0.0f); glVertex3f(  0.0f, -6.0f, 25.0f);
-		glTexCoord2f(14.0f, 5.0f); glVertex3f(  0.0f,  4.0f, 25.0f);
-		glTexCoord2f( 0.0f, 5.0f); glVertex3f(-45.0f,  4.0f, 25.0f);
-	glEnd();
-
-	//Plano 22 (piso 6)
-	glBindTexture(GL_TEXTURE_2D, textura[11].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f, 3.0f); glVertex3f(-25.0f, 10.0f, 8.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(  0.0f, 10.0f, 8.0f);
-		glTexCoord2f(2.0f, 0.0f); glVertex3f(  0.0f, 10.0f, 0.0f);
-		glTexCoord2f(2.0f, 3.0f); glVertex3f(-25.0f, 10.0f, 0.0f);
-	glEnd();
-
-	//Plano 23 (piso 7)
-	glBindTexture(GL_TEXTURE_2D, textura[11].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f, 3.0f); glVertex3f(-15.0f, 10.0f, 12.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(  0.0f, 10.0f, 12.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(  0.0f, 10.0f,  8.0f);
-		glTexCoord2f(1.0f, 3.0f); glVertex3f(-15.0f, 10.0f,  8.0f);
-	glEnd();
-
-	//Plano 24 (piso 8)
-	glBindTexture(GL_TEXTURE_2D, textura[11].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f, 3.0f); glVertex3f(-7.0f, 10.0f, 16.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.0f, 10.0f, 16.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.0f, 10.0f, 12.0f);
-		glTexCoord2f(1.0f, 3.0f); glVertex3f(-7.0f, 10.0f, 12.0f);
-	glEnd();
-
-	//Plano 25 (piso 9)
-	glBindTexture(GL_TEXTURE_2D, textura[11].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f, 3.0f); glVertex3f(-8.0f, 12.0f, 8.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.0f, 12.0f, 8.0f);
-		glTexCoord2f(2.0f, 0.0f); glVertex3f( 0.0f, 12.0f, 0.0f);
-		glTexCoord2f(2.0f, 3.0f); glVertex3f(-8.0f, 12.0f, 0.0f);
-	glEnd();
-
-	//Plano 26 (pared 14)
-	glBindTexture(GL_TEXTURE_2D, textura[9].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-25.0f,  8.0f, 0.0f);
-		glTexCoord2f(2.0f, 0.0f); glVertex3f(-25.0f,  8.0f, 8.0f);
-		glTexCoord2f(2.0f, 1.0f); glVertex3f(-25.0f, 10.0f, 8.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-25.0f, 10.0f, 0.0f);
-	glEnd();
-
-	//Plano 27 (pared 15)
-	glBindTexture(GL_TEXTURE_2D, textura[9].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-15.0f,  8.0f,  8.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-15.0f,  8.0f, 12.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-15.0f, 10.0f, 12.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-15.0f, 10.0f,  8.0f);
-	glEnd();
-
-	//Plano 28 (pared 16)
-	glBindTexture(GL_TEXTURE_2D, textura[9].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-7.0f,  8.0f, 12.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-7.0f,  8.0f, 16.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-7.0f, 10.0f, 16.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-7.0f, 10.0f, 12.0f);
-	glEnd();
-
-	//Plano 29 (pared 17)
-	glBindTexture(GL_TEXTURE_2D, textura[9].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-8.0f, 10.0f, 0.0f);
-		glTexCoord2f(2.0f, 0.0f); glVertex3f(-8.0f, 10.0f, 8.0f);
-		glTexCoord2f(2.0f, 1.0f); glVertex3f(-8.0f, 12.0f, 8.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-8.0f, 12.0f, 0.0f);
-	glEnd();
-
-	//Plano 30 (pared 18)
-	glBindTexture(GL_TEXTURE_2D, textura[10].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-7.0f,  8.0f, 16.0f);
-		glTexCoord2f(2.0f, 0.0f); glVertex3f( 0.0f,  8.0f, 16.0f);
-		glTexCoord2f(2.0f, 1.0f); glVertex3f( 0.0f, 10.0f, 16.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-7.0f, 10.0f, 16.0f);
-	glEnd();
-
-	//Plano 31 (pared 19)
-	glBindTexture(GL_TEXTURE_2D, textura[10].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-15.0f,  8.0f, 12.0f);
-		glTexCoord2f(3.0f, 0.0f); glVertex3f(- 7.0f,  8.0f, 12.0f);
-		glTexCoord2f(3.0f, 1.0f); glVertex3f(- 7.0f, 10.0f, 12.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-15.0f, 10.0f, 12.0f);
-	glEnd();
-
-	//Plano 32 (pared 20)
-	glBindTexture(GL_TEXTURE_2D, textura[10].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-25.0f,  8.0f, 8.0f);
-		glTexCoord2f(4.0f, 0.0f); glVertex3f(-15.0f,  8.0f, 8.0f);
-		glTexCoord2f(4.0f, 1.0f); glVertex3f(-15.0f, 10.0f, 8.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-25.0f, 10.0f, 8.0f);
-	glEnd();
-
-	//Plano 33 (pared 21)
-	glBindTexture(GL_TEXTURE_2D, textura[10].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-8.0f, 10.0f, 8.0f);
-		glTexCoord2f(2.0f, 0.0f); glVertex3f( 0.0f, 10.0f, 8.0f);
-		glTexCoord2f(2.0f, 1.0f); glVertex3f( 0.0f, 12.0f, 8.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-8.0f, 12.0f, 8.0f);
-	glEnd();
-
-	//Plano 34 (pared 22)
-	glBindTexture(GL_TEXTURE_2D, textura[14].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.6f, 0.0f); glVertex3f(0.0f, -20.0f,  0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, -20.0f, 30.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(0.0f,  17.0f, 30.0f);
-		glTexCoord2f(0.6f, 1.0f); glVertex3f(0.0f,  17.0f,  0.0f);
-	glEnd();
-
-	//Plano 35 (pared 23)
-	glBindTexture(GL_TEXTURE_2D, textura[14].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.0f, -20.0f, 30.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(80.0f, -20.0f, 30.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(80.0f,  17.0f, 30.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.0f,  17.0f, 30.0f);
-	glEnd();
-
-	//Plano 36 (piso 10)
-	glBindTexture(GL_TEXTURE_2D, textura[13].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.0f, 17.0f, 30.0f);
-		glTexCoord2f(6.0f, 0.0f); glVertex3f(80.0f, 17.0f, 30.0f);
-		glTexCoord2f(6.0f, 2.0f); glVertex3f(80.0f, 17.0f,  0.0f);
-		glTexCoord2f(0.0f, 2.0f); glVertex3f( 0.0f, 17.0f,  0.0f);
-	glEnd();
-
-	//Plano 37 (pared 24)
-	glBindTexture(GL_TEXTURE_2D, textura[15].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(22.0f, 17.0f, 8.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(80.0f, 17.0f, 8.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(80.0f, 35.0f, 8.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(22.0f, 35.0f, 8.0f);
-	glEnd();
-
-	//Plano 38 (pared 25)
-	glBindTexture(GL_TEXTURE_2D, textura[7].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(22.0f, 17.0f, 0.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(22.0f, 17.0f, 8.0f);
-		glTexCoord2f(1.0f, 2.0f); glVertex3f(22.0f, 35.0f, 8.0f);
-		glTexCoord2f(0.0f, 2.0f); glVertex3f(22.0f, 35.0f, 0.0f);
-	glEnd();
-
-	//Plano 39 (piso 11)
-	glBindTexture(GL_TEXTURE_2D, textura[1].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,1.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(22.0f, 35.0f, 8.0f);
-		glTexCoord2f(2.5f, 0.0f); glVertex3f(80.0f, 35.0f, 8.0f);
-		glTexCoord2f(2.5f, 1.0f); glVertex3f(80.0f, 35.0f, 0.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(22.0f, 35.0f, 0.0f);
-	glEnd();
-
-	//Plano 40 (pared 26)
-	glBindTexture(GL_TEXTURE_2D, textura[7].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(80.0f, 35.0f, 0.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(80.0f, 35.0f, 8.0f);
-		glTexCoord2f(1.0f, 2.0f); glVertex3f(80.0f, 50.0f, 8.0f);
-		glTexCoord2f(0.0f, 2.0f); glVertex3f(80.0f, 50.0f, 0.0f);
-	glEnd();
-
-	//Plano 41 (pared 27)
-	glBindTexture(GL_TEXTURE_2D, textura[8].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f,0.0f,1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.0f, 17.0f, 0.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(80.0f, 17.0f, 0.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(80.0f, 50.0f, 0.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.0f, 50.0f, 0.0f);
-	glEnd();
-
-	//Plano 42 (pared 28)
-	glBindTexture(GL_TEXTURE_2D, textura[7].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, 30.0f, -10.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(0.0f, 30.0f,   0.0f);
-		glTexCoord2f(1.0f, 2.0f); glVertex3f(0.0f, 50.0f,   0.0f);
-		glTexCoord2f(0.0f, 2.0f); glVertex3f(0.0f, 50.0f, -10.0f);
-	glEnd();
-
-	//Plano 43 (pared 29)
-	glBindTexture(GL_TEXTURE_2D, textura[16].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(80.0f, 17.0f,  8.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(80.0f, 17.0f, 30.0f);
-		glTexCoord2f(1.0f, 0.7f); glVertex3f(80.0f, 50.0f, 30.0f);
-		glTexCoord2f(0.0f, 0.7f); glVertex3f(80.0f, 50.0f,  8.0f);
-	glEnd();
-
-	glDisable(GL_TEXTURE_2D);
-
-	//Cajas
 
 	//Caja 1
 	glPushMatrix();
@@ -2310,98 +1083,6 @@ void DibujaEscenario()
 		DibujaCaja(2);
 	glPopMatrix();
 
-	//Caja 2
-	glPushMatrix();
-		glTranslatef(14.1f, 19.0f, 3.0f);
-		DibujaCaja(1);
-	glPopMatrix();
-
-	//Caja 3
-	glPushMatrix();
-		glTranslatef(19.3f, 19.0f, 3.5f);
-		DibujaCaja(3);
-	glPopMatrix();
-
-	//Caja 4
-	glPushMatrix();
-		glTranslatef(9.0f, 23.0f, 3.5f);
-		DibujaCaja(1);
-	glPopMatrix();
-
-	//Caja 5
-	glPushMatrix();
-		glTranslatef(17.0f, 23.0f, 3.5f);
-		glRotatef(-70.0f, 0.0f, 1.0f, 0.0f);
-		glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
-		glScalef(0.8f, 1.0f, 1.2f);
-		DibujaCaja(1);
-	glPopMatrix();
-
-	//Caja 6
-	glPushMatrix();
-		glTranslatef(14.3f, 27.0f, 3.0f);
-		DibujaCaja(3);
-	glPopMatrix();
-
-	//Caja 7
-	glPushMatrix();
-		glTranslatef(19.4f, 27.0f, 3.0f);
-		DibujaCaja(3);
-	glPopMatrix();
-
-	//Caja 8
-	glPushMatrix();
-		glTranslatef(19.4f, 31.0f, 3.0f);
-		DibujaCaja(2);
-	glPopMatrix();
-
-	//Caja 9
-	glPushMatrix();
-		glTranslatef(67.4f, 19.0f, 11.5f);
-		glScalef(1.0f, 1.0f, 0.8f);
-		DibujaCaja(2);
-	glPopMatrix();
-
-	//Caja 10
-	glPushMatrix();
-		glTranslatef(72.5f, 19.0f, 11.0f);
-		glScalef(1.0f, 1.0f, 0.8f);
-		DibujaCaja(1);
-	glPopMatrix();
-
-	//Caja 11
-	glPushMatrix();
-		glTranslatef(77.5f, 19.0f, 11.5f);
-		glScalef(1.0f, 1.0f, 0.8f);
-		DibujaCaja(3);
-	glPopMatrix();
-
-	//Caja 12
-	glPushMatrix();
-		glTranslatef(72.5f, 23.0f, 11.0f);
-		glScalef(1.0f, 1.0f, 0.8f);
-		DibujaCaja(1);
-	glPopMatrix();
-
-	//Caja 13
-	glPushMatrix();
-		glTranslatef(77.5f, 23.0f, 11.5f);
-		glScalef(1.0f, 1.0f, 0.8f);
-		DibujaCaja(1);
-	glPopMatrix();
-
-	//Caja 14
-	glPushMatrix();
-		glTranslatef(77.5f, 27.0f, 11.5f);
-		glScalef(1.0f, 1.0f, 0.8f);
-		DibujaCaja(3);
-	glPopMatrix();
-
-	//Banda transportadora
-	glPushMatrix();
-		glTranslatef(71.0f, 18.5f, 19.0f);
-		DibujaTransportadora();
-	glPopMatrix();
 }
 
 void DibujaPersonaje()
@@ -2500,98 +1181,6 @@ void AlturaPiso()
 		altPiso=-50.0f;
 }
 
-void AnimacionSalto()
-{
-	if(player1.contAuxAnim < 40)
-	{
-		if(play == false)
-		{
-			Angt1   = KeyFrame2[0].Angt1;
-			Angt2   = KeyFrame2[0].Angt2;
-			Angc1   = KeyFrame2[0].Angc1;
-			Angc2   = KeyFrame2[0].Angc2;
-			Angbi1  = KeyFrame2[0].Angbi1;
-			Angbi2  = KeyFrame2[0].Angbi2;
-			Angbib  = KeyFrame2[0].Angbib;
-			Angbd1  = KeyFrame2[0].Angbd1;
-			Angbd2  = KeyFrame2[0].Angbd2;
-			Angbdb  = KeyFrame2[0].Angbdb;
-			Angpizq = KeyFrame2[0].Angpizq;
-			Angpder = KeyFrame2[0].Angpder;
-			Angpi   = KeyFrame2[0].Angpi;
-			Angpd   = KeyFrame2[0].Angpd;
-			Xtor    = KeyFrame2[0].Xtor;
-			Ytor    = KeyFrame2[0].Ytor;
-			Ztor    = KeyFrame2[0].Ztor;
-
-			play=true;
-			playIndex=0;
-			tipoAnim=2;
-		}
-		player1.contAuxAnim++;
-	}
-	else
-	{
-		player1.kick=false;
-		play=false;
-		Angt1   = 0.0f;
-		Angt2   = 0.0f;
-		Angc1   = 0.0f;
-		Angc2   = 0.0f;
-		Angbi1  = 0.0f;
-		Angbi2  = 0.0f;
-		Angbib  = 0.0f;
-		Angbd1  = 0.0f;
-		Angbd2  = 0.0f;
-		Angbdb  = 0.0f;
-		Angpizq = 0.0f;
-		Angpder = 0.0f;
-		Angpi   = 0.0f;
-		Angpd   = 0.0f;
-		Xtor    = 0.0f;
-		Ytor    = 0.0f;
-		Ztor    = 0.0f;
-	}
-}
-
-void IndicadorVidas()
-{
-	glDisable(GL_DEPTH_TEST);							// Desactiva prueba de profundidad
-	glMatrixMode(GL_PROJECTION);						// Selecciona la matriz de proyeccion
-	glPushMatrix();										// Guarda la matriz de proyeccion
-	glLoadIdentity();									// Limpia la matriz de proyeccion
-	glOrtho(0,infGame.glWidth,0,infGame.glHeight,-1,1);					// Crea una proyección paralela
-	glMatrixMode(GL_MODELVIEW);							// Selecciona la matriz de modelo de vista
-	glPushMatrix();										// Guarda matriz de modelo de vista
-	glLoadIdentity();
-
-	glDisable(GL_LIGHTING);
-	glEnable(GL_TEXTURE_2D);
-
-	glAlphaFunc(GL_GREATER, 0.8f);
-	glEnable(GL_ALPHA_TEST);
-
-	glBindTexture(GL_TEXTURE_2D, textura[29].texID);
-
-	glBegin(GL_QUADS);
-		glTexCoord2f(0.0f, 0.0f); glVertex2f(				 0.0f,					0.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex2f(infGame.glWidth*0.2f,					0.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex2f(infGame.glWidth*0.2f, infGame.glHeight*0.3f);
-		glTexCoord2f(0.0f, 1.0f); glVertex2f(				 0.0f, infGame.glHeight*0.3f);
-	glEnd();
-
-	glDisable(GL_ALPHA_TEST);
-
-	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_LIGHTING);
-	
-	glMatrixMode(GL_PROJECTION);						// Selecciona la matriz de proyeccion
-	glPopMatrix();										// Restaura la matriz de proyeccion anterior
-	glMatrixMode(GL_MODELVIEW);							// Selecciona la matriz de modelo de vista
-	glPopMatrix();										// Restaura la matriz de modelo de vista anterior
-	glEnable(GL_DEPTH_TEST);							// Activa prueba de profundidad
-}
-
 //Cambios para Fuentes
 void DibujaTextos()
 {
@@ -2608,151 +1197,12 @@ void DibujaTextos()
 
 	glColor3f(1.0f,1.0f,1.0f);
 	
-	glEnable(GL_TEXTURE_2D);
-
-	glAlphaFunc(GL_GREATER, 0.6f);
-	glEnable(GL_ALPHA_TEST);
-
-	//Font.glPrint((2.0f/640.0f)*glWidth, glWidth*0.05f,glHeight*0.9f,"Ejemplo texto");
-	Font.glPrint((0.8f/640.0f)*infGame.glWidth, infGame.glWidth*0.85f,infGame.glHeight*0.95f,".FPS %d",FPS);
-
-	if(detectado == 1)
-		Font.glPrint((8.0f/640.0f)*infGame.glWidth, infGame.glWidth*0.01f,infGame.glHeight*0.382f,"BUSTED!");
-		
-	glDisable(GL_ALPHA_TEST);
-	glDisable(GL_TEXTURE_2D);
-
-	glColor3f(1.0f,1.0f,1.0f);
-
 	glEnable(GL_LIGHTING);
 	glMatrixMode(GL_PROJECTION);						// Selecciona la matriz de proyección
 	glPopMatrix();										// Recupera la anterior matriz de proyección
 	glMatrixMode(GL_MODELVIEW);							// Selecciona la matriz de modelo de vista
 	glPopMatrix();										// Recupera la anterior matriz de modelo de vista
 	glEnable(GL_DEPTH_TEST);							// Activa la prueba de profundidad
-}
-
-void dibujaLogoStudio()
-{
-	glDisable(GL_DEPTH_TEST);							// Desactiva prueba de profundidad
-	glMatrixMode(GL_PROJECTION);						// Selecciona la matriz de proyeccion
-	glPushMatrix();										// Guarda la matriz de proyeccion
-	glLoadIdentity();									// Limpia la matriz de proyeccion
-	glOrtho(0,infGame.glWidth,0,infGame.glHeight,-1,1);					// Crea una proyección paralela
-	glMatrixMode(GL_MODELVIEW);							// Selecciona la matriz de modelo de vista
-	glPushMatrix();										// Guarda matriz de modelo de vista
-	glLoadIdentity();
-
-	glDisable(GL_LIGHTING);
-	
-	glColor3f(0.0f, 1.0f, 0.0f);
-
-	glBegin(GL_QUADS);
-		glVertex2f(infGame.glWidth*0.3f, infGame.glHeight*0.29f);
-		glVertex2f(infGame.glWidth*0.7f, infGame.glHeight*0.29f);
-		glVertex2f(infGame.glWidth*0.7f, infGame.glHeight*0.59f);
-		glVertex2f(infGame.glWidth*0.3f, infGame.glHeight*0.59f);
-	glEnd();
-
-	glBegin(GL_TRIANGLES);
-		glVertex2f(infGame.glWidth*0.25f, infGame.glHeight*0.59f);
-		glVertex2f(infGame.glWidth*0.75f, infGame.glHeight*0.59f);
-		glVertex2f(infGame.glWidth*0.50f, infGame.glHeight*0.79f);
-	glEnd();
-
-	glColor3f(1.0f, 1.0f, 1.0f);
-
-	glEnable(GL_TEXTURE_2D);
-
-	glAlphaFunc(GL_GREATER, 0.6f);
-	glEnable(GL_ALPHA_TEST);
-
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.3f, infGame.glHeight*0.22f,"GREEN HOUSE");
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.37f, infGame.glHeight*0.165f,"STUDIOS");
-			
-	glDisable(GL_ALPHA_TEST);
-	glDisable(GL_TEXTURE_2D);
-
-	glEnable(GL_LIGHTING);
-	
-	glMatrixMode(GL_PROJECTION);						// Selecciona la matriz de proyeccion
-	glPopMatrix();										// Restaura la matriz de proyeccion anterior
-	glMatrixMode(GL_MODELVIEW);							// Selecciona la matriz de modelo de vista
-	glPopMatrix();										// Restaura la matriz de modelo de vista anterior
-	glEnable(GL_DEPTH_TEST);							// Activa prueba de profundidad
-}
-
-void dibujaPantalladeCarga()
-{
-	glDisable(GL_DEPTH_TEST);							// Desactiva prueba de profundidad
-	glMatrixMode(GL_PROJECTION);						// Selecciona la matriz de proyeccion
-	glPushMatrix();										// Guarda la matriz de proyeccion
-	glLoadIdentity();									// Limpia la matriz de proyeccion
-	glOrtho(0,infGame.glWidth,0,infGame.glHeight,-1,1);					// Crea una proyección paralela
-	glMatrixMode(GL_MODELVIEW);							// Selecciona la matriz de modelo de vista
-	glPushMatrix();										// Guarda matriz de modelo de vista
-	glLoadIdentity();
-
-	glDisable(GL_LIGHTING);
-	
-	glEnable(GL_TEXTURE_2D);
-
-	glAlphaFunc(GL_GREATER, 0.6f);
-	glEnable(GL_ALPHA_TEST);
-
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.06f, infGame.glHeight*0.05f,"Cargando...");
-			
-	glDisable(GL_ALPHA_TEST);
-	glDisable(GL_TEXTURE_2D);
-
-	glEnable(GL_LIGHTING);
-	
-	glMatrixMode(GL_PROJECTION);						// Selecciona la matriz de proyeccion
-	glPopMatrix();										// Restaura la matriz de proyeccion anterior
-	glMatrixMode(GL_MODELVIEW);							// Selecciona la matriz de modelo de vista
-	glPopMatrix();										// Restaura la matriz de modelo de vista anterior
-	glEnable(GL_DEPTH_TEST);							// Activa prueba de profundidad
-}
-
-void dibujaPantalladeIntroduccion()
-{
-	glDisable(GL_DEPTH_TEST);							// Desactiva prueba de profundidad
-	glMatrixMode(GL_PROJECTION);						// Selecciona la matriz de proyeccion
-	glPushMatrix();										// Guarda la matriz de proyeccion
-	glLoadIdentity();									// Limpia la matriz de proyeccion
-	glOrtho(0,infGame.glWidth,0,infGame.glHeight,-1,1);					// Crea una proyección paralela
-	glMatrixMode(GL_MODELVIEW);							// Selecciona la matriz de modelo de vista
-	glPushMatrix();										// Guarda matriz de modelo de vista
-	glLoadIdentity();
-
-	glDisable(GL_LIGHTING);
-	
-	glEnable(GL_TEXTURE_2D);
-
-	glAlphaFunc(GL_GREATER, 0.6f);
-	glEnable(GL_ALPHA_TEST);
-
-	if(timerEstados.TiempoActual() < 9000)
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.48f,"   Habia una vez");
-	else if(timerEstados.TiempoActual() >= 9000 && timerEstados.TiempoActual() < 13000)
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.11f, infGame.glHeight*0.48f,"en un lugar muy lejano");
-	else if(timerEstados.TiempoActual() >= 13000 && timerEstados.TiempoActual() < 17000)
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.11f, infGame.glHeight*0.48f,"  llamado Chiluca...");
-	else if(timerEstados.TiempoActual() >= 17000 && timerEstados.TiempoActual() < 21000)
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.11f, infGame.glHeight*0.48f,"    personas muy...  ");
-	else if(timerEstados.TiempoActual() > 21000 && timerEstados.TiempoActual() < 25000)
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.14f, infGame.glHeight*0.48f,"   ... chilucotas   ");
-			
-	glDisable(GL_ALPHA_TEST);
-	glDisable(GL_TEXTURE_2D);
-
-	glEnable(GL_LIGHTING);
-	
-	glMatrixMode(GL_PROJECTION);						// Selecciona la matriz de proyeccion
-	glPopMatrix();										// Restaura la matriz de proyeccion anterior
-	glMatrixMode(GL_MODELVIEW);							// Selecciona la matriz de modelo de vista
-	glPopMatrix();										// Restaura la matriz de modelo de vista anterior
-	glEnable(GL_DEPTH_TEST);							// Activa prueba de profundidad
 }
 
 void dibujaTituloJuego()
@@ -2856,44 +1306,30 @@ void dibujaMenuOpciones()
 		glColor3f(0.0f, 1.0f, 0.0f);
 	else
 		glColor3f(1.0f, 1.0f, 1.0f);
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.8f,"Dificultad:");
+	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.8f,"Num. Vidas:");
 
 	if(infGame.opMenuPrinc.opcionSelec == 1)
 		glColor3f(0.0f, 1.0f, 0.0f);
 	else
 		glColor3f(1.0f, 1.0f, 1.0f);
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.6f,"Num. vidas:");
+	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.6f,"Sonido:");
 
 	if(infGame.opMenuPrinc.opcionSelec == 2)
 		glColor3f(0.0f, 1.0f, 0.0f);
 	else
 		glColor3f(1.0f, 1.0f, 1.0f);
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.4f,"Sonido:");
+	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.4f,"Regresar");
 
-	if(infGame.opMenuPrinc.opcionSelec == 3)
-		glColor3f(0.0f, 1.0f, 0.0f);
-	else
-		glColor3f(1.0f, 1.0f, 1.0f);
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.2f,"Regresar");
-	
 	glColor3f(1.0f, 1.0f, 1.0f);
-
-	//Opciones de dificultad
-	if(infGame.opMenuPrinc.dificultad == 0)
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.6f, infGame.glHeight*0.8f,"Facil");
-	else if(infGame.opMenuPrinc.dificultad == 1)
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.6f, infGame.glHeight*0.8f,"Normal");
-	else if(infGame.opMenuPrinc.dificultad == 2)
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.6f, infGame.glHeight*0.8f,"Dificil");
-
+	
 	//Número de vidas
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.6f, infGame.glHeight*0.6f,"%d", infGame.opMenuPrinc.numVidas);
+	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.6f, infGame.glHeight*0.8f,"%d", infGame.opMenuPrinc.numVidas);
 
 	//Sonido
 	if(infGame.opMenuPrinc.sonido == 0)
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.6f, infGame.glHeight*0.4f,"Off");
+		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.6f, infGame.glHeight*0.6f,"Off");
 	else
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.6f, infGame.glHeight*0.4f,"On");
+		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.6f, infGame.glHeight*0.6f,"On");
 	
 				
 	glDisable(GL_ALPHA_TEST);
@@ -2969,114 +1405,7 @@ void dibujaMenuPausa()
 	glEnable(GL_DEPTH_TEST);							// Activa prueba de profundidad
 }
 
-void ejemploBackFaceCulling()
-{
-	CVector vert[4];
-	CVector N, vec1, vec2;
-	CVector V;
-	CVector pm;
-
-	int visible=0;
-
-	vert[0]=CVector(-70.0f,  0.0f, 0.0f);
-	vert[1]=CVector(-50.0f,  0.0f, 0.0f);
-	vert[2]=CVector(-50.0f, 20.0f, 0.0f);
-	vert[3]=CVector(-70.0f, 20.0f, 0.0f);
-
-	vec1=vert[1]-vert[0];
-	vec2=vert[3]-vert[0];
-
-	N=Normaliza(Cruz(vec1, vec2));
-
-	//Punto medio
-	pm=(vert[0]+vert[1]+vert[2]+vert[3])/4.0f;
-
-	//Vector hacia la cámara (V)
-	V=Normaliza(CVector(player1.PosicionObj.x-10.0f, player1.PosicionObj.y+30.0f, player1.PosicionObj.z+40.0f)-pm);
-
-	//Prueba con el producto punto
-	if(Punto(N, V) > 0.0f)
-		visible=1;
-
-	if(visible == 1)
-	{
-		glBegin(GL_QUADS);
-			glVertex3f(vert[0].x, vert[0].y, vert[0].z);
-			glVertex3f(vert[1].x, vert[1].y, vert[1].z);
-			glVertex3f(vert[2].x, vert[2].y, vert[2].z);
-			glVertex3f(vert[3].x, vert[3].y, vert[3].z);
-		glEnd();
-	}
-}
-
 void dibujaVolumendeSombra()
-{
-	CVector posLuz=CVector(player1.PosicionObj.x-3.0f, player1.PosicionObj.y+35.0f, player1.PosicionObj.z-1.0f);
-	CVector v1=CVector(player1.PosicionObj.x-1.5f, player1.PosicionObj.y+4.0f, player1.PosicionObj.z+1.5f);
-	CVector v2=CVector(player1.PosicionObj.x+1.5f, player1.PosicionObj.y+4.0f, player1.PosicionObj.z+1.5f);
-	CVector v3=CVector(player1.PosicionObj.x+1.5f, player1.PosicionObj.y+4.0f, player1.PosicionObj.z-1.5f);
-	CVector v4=CVector(player1.PosicionObj.x-1.5f, player1.PosicionObj.y+4.0f, player1.PosicionObj.z-1.5f);
-
-	CVector v1d=Normaliza(v1-posLuz);
-	CVector v2d=Normaliza(v2-posLuz);
-	CVector v3d=Normaliza(v3-posLuz);
-	CVector v4d=Normaliza(v4-posLuz);
-
-	CVector v1p=v1+v1d*200.0f;
-	CVector v2p=v2+v2d*200.0f;
-	CVector v3p=v3+v3d*200.0f;
-	CVector v4p=v4+v4d*200.0f;
-
-	//1
-	glBegin(GL_QUADS);
-		glVertex3f(v1.x, v1.y, v1.z);
-		glVertex3f(v2.x, v2.y, v2.z);
-		glVertex3f(v3.x, v3.y, v3.z);
-		glVertex3f(v4.x, v4.y, v4.z);
-	glEnd();
-
-	//2
-	glBegin(GL_QUADS);
-		glVertex3f(v1p.x, v1p.y, v1p.z);
-		glVertex3f(v2p.x, v2p.y, v2p.z);
-		glVertex3f(v2.x, v2.y, v2.z);
-		glVertex3f(v1.x, v1.y, v1.z);
-	glEnd();
-
-	//3
-	glBegin(GL_QUADS);
-		glVertex3f(v4p.x, v4p.y, v4p.z);
-		glVertex3f(v1p.x, v1p.y, v1p.z);
-		glVertex3f(v1.x, v1.y, v1.z);
-		glVertex3f(v4.x, v4.y, v4.z);
-	glEnd();
-
-	//4
-	glBegin(GL_QUADS);
-		glVertex3f(v2p.x, v2p.y, v2p.z);
-		glVertex3f(v3p.x, v3p.y, v3p.z);
-		glVertex3f(v3.x, v3.y, v3.z);
-		glVertex3f(v2.x, v2.y, v2.z);
-	glEnd();
-
-	//5
-	glBegin(GL_QUADS);
-		glVertex3f(v3p.x, v3p.y, v3p.z);
-		glVertex3f(v4p.x, v4p.y, v4p.z);
-		glVertex3f(v4.x, v4.y, v4.z);
-		glVertex3f(v3.x, v3.y, v3.z);
-	glEnd();
-
-	//6
-	glBegin(GL_QUADS);
-		glVertex3f(v2p.x, v2p.y, v2.z);
-		glVertex3f(v1p.x, v1p.y, v1p.z);
-		glVertex3f(v4p.x, v4p.y, v4p.z);
-		glVertex3f(v3p.x, v3p.y, v3p.z);
-	glEnd();
-}
-
-void dibujaVolumendeSombra2()
 {
 	CVector vert[2];
 	CVector vertP[2];
@@ -3133,289 +1462,6 @@ void dibujaVolumendeSombra2()
 		glEnd();
 
 	}
-}
-
-void dibujaModelo()
-{
-	//Objeto 1
-
-	//Plano 1
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f, 0.0f, 1.0f);
-		glVertex3f(-60.0f,  5.0f, 5.0f);
-		glVertex3f(-40.0f,  5.0f, 5.0f);
-		glVertex3f(-40.0f, 15.0f, 5.0f);
-		glVertex3f(-60.0f, 15.0f, 5.0f);
-	glEnd();
-
-	//Plano 2
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f, 0.0f, 0.0f);
-		glVertex3f(-40.0f,  5.0f,  5.0f);
-		glVertex3f(-40.0f,  5.0f, 15.0f);
-		glVertex3f(-40.0f, 15.0f, 15.0f);
-		glVertex3f(-40.0f, 15.0f,  5.0f);
-	glEnd();
-	
-}
-
-void guardaModelo()
-{
-	FILE *F;
-	float var3F[3];
-	float var1F[1];
-	int   var1I[1];
-
-	F=fopen("modelo1.mod", "wb");
-
-	//Num. de objetos
-	var1I[0]=datosModelo.numObjetos;;
-	fwrite(var1I, sizeof(int), 1, F);
-
-	for(int i=0; i<datosModelo.numObjetos; i++)
-	{
-		var1I[0]=datosModelo.obj[i].numPlanos;
-		fwrite(var1I, sizeof(int), 1, F);
-
-		for(int j=0; j<datosModelo.obj[i].numPlanos; j++)
-		{
-			var3F[0]=datosModelo.obj[i].pl[j].normal.x;
-			var3F[1]=datosModelo.obj[i].pl[j].normal.y;
-			var3F[2]=datosModelo.obj[i].pl[j].normal.z;
-			fwrite(var3F, sizeof(float), 3, F);
-
-			var1I[0]=datosModelo.obj[i].pl[j].tieneTextura;
-			fwrite(var1I, sizeof(int), 1, F);
-
-			var1I[0]=datosModelo.obj[i].pl[j].tieneMaterial;
-			fwrite(var1I, sizeof(int), 1, F);
-
-			var1I[0]=datosModelo.obj[i].pl[j].idText;
-			fwrite(var1I, sizeof(int), 1, F);
-
-			var1I[0]=datosModelo.obj[i].pl[j].idMat;
-			fwrite(var1I, sizeof(int), 1, F);
-
-			for(int k=0; k<4; k++)
-			{
-				var3F[0]=datosModelo.obj[i].pl[j].vert[k].pos.x;
-				var3F[1]=datosModelo.obj[i].pl[j].vert[k].pos.y;
-				var3F[2]=datosModelo.obj[i].pl[j].vert[k].pos.z;
-				fwrite(var3F, sizeof(float), 3, F);
-
-				var1F[0]=datosModelo.obj[i].pl[j].vert[k].s;
-				fwrite(var1F, sizeof(float), 1, F);
-
-				var1F[0]=datosModelo.obj[i].pl[j].vert[k].t;
-				fwrite(var1F, sizeof(float), 1, F);
-			}
-		}
-	}
-}
-
-void cargaModelo()
-{
-	FILE *F;
-	float var3F[3];
-	float var1F[1];
-	int   var1I[1];
-
-	F=fopen("modelo1.mod", "rb");
-
-	//Num. de objetos
-	fread(var1I, sizeof(int), 1, F);
-	datosModelo.numObjetos=var1I[0];
-
-	datosModelo.obj=new objeto[datosModelo.numObjetos];
-
-	for(int i=0; i<datosModelo.numObjetos; i++)
-	{
-		fread(var1I, sizeof(int), 1, F);
-		datosModelo.obj[i].numPlanos=var1I[0];
-
-		datosModelo.obj[i].pl=new plano[datosModelo.obj[i].numPlanos];
-
-		for(int j=0; j<datosModelo.obj[i].numPlanos; j++)
-		{
-			fread(var3F, sizeof(float), 3, F);
-			datosModelo.obj[i].pl[j].normal.x=var3F[0];
-			datosModelo.obj[i].pl[j].normal.y=var3F[1];
-			datosModelo.obj[i].pl[j].normal.z=var3F[2];
-
-			fread(var1I, sizeof(int), 1, F);
-			datosModelo.obj[i].pl[j].tieneTextura=var1I[0];
-
-			fread(var1I, sizeof(int), 1, F);
-			datosModelo.obj[i].pl[j].tieneMaterial=var1I[0];
-
-			fread(var1I, sizeof(int), 1, F);
-			datosModelo.obj[i].pl[j].idText=var1I[0];
-
-			fread(var1I, sizeof(int), 1, F);
-			datosModelo.obj[i].pl[j].idMat=var1I[0];
-
-			for(int k=0; k<4; k++)
-			{
-				fread(var3F, sizeof(float), 3, F);
-				datosModelo.obj[i].pl[j].vert[k].pos.x=var3F[0];
-				datosModelo.obj[i].pl[j].vert[k].pos.y=var3F[1];
-				datosModelo.obj[i].pl[j].vert[k].pos.z=var3F[2];
-
-				fread(var1F, sizeof(float), 1, F);
-				datosModelo.obj[i].pl[j].vert[k].s=var1F[0];
-
-				fread(var1F, sizeof(float), 1, F);
-				datosModelo.obj[i].pl[j].vert[k].t=var1F[0];
-			}
-		}
-	}
-}
-
-void dibujaModeloArchivo()
-{
-	//Num. de objetos
-	for(int i=0; i<datosModelo.numObjetos; i++)
-	{
-		for(int j=0; j<datosModelo.obj[i].numPlanos; j++)
-		{
-			glBegin(GL_QUADS);
-				glNormal3f(datosModelo.obj[i].pl[j].normal.x,
-						   datosModelo.obj[i].pl[j].normal.y,
-						   datosModelo.obj[i].pl[j].normal.z);
-			
-				for(int k=0; k<4; k++)
-				{
-					glVertex3f(datosModelo.obj[i].pl[j].vert[k].pos.x,
-							   datosModelo.obj[i].pl[j].vert[k].pos.y,
-							   datosModelo.obj[i].pl[j].vert[k].pos.z);
-
-				}
-
-			glEnd();
-		}
-	}
-}
-
-void dibujaSpline()
-{
-	float t;
-	CVector ter3,ter2,ter1,ter;
-	CVector Punto;
-
-	glDisable(GL_LIGHTING);
-	glColor3f(1.0f, 1.0f, 0.0f);
-
-	glBegin(GL_LINE_STRIP);
-
-	float delta_t=1.0f/resolucion;
-
-	for(int i=1; i<18; i++) //max-2
-	{
-		ter3=puntosdeControl[i-1]*-1.0f+puntosdeControl[i]*3.0f+puntosdeControl[i+1]*-3.0f+puntosdeControl[i+2];
-		ter2=puntosdeControl[i-1]*3.0f+puntosdeControl[i]*-6.0f+puntosdeControl[i+1]*3.0f;
-		ter1=puntosdeControl[i-1]*-3.0f+puntosdeControl[i+1]*3.0f;
-		ter=puntosdeControl[i-1]+puntosdeControl[i]*4.0f+puntosdeControl[i+1];
-
-		for(int j=0; j<resolucion; j++)
-		{
-			t=j*delta_t;
-			Punto=(ter3*pow(t,3)+ter2*pow(t,2)+ter1*t+ter)/6.0f;
-
-			glVertex3f(Punto.x, Punto.y, Punto.z);
-		}
-	}
-
-	glEnd();
-
-	glPointSize(10.0f);
-
-	glBegin(GL_POINTS);
-
-		for(int i=0; i<20; i++)
-		{
-			glColor3f(1.0f, 0.0f, 0.0f);
-			
-			glVertex3f(puntosdeControl[i].x, puntosdeControl[i].y, puntosdeControl[i].z);
-		}
-
-	glEnd();
-
-	glPointSize(1.0f);
-
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glEnable(GL_LIGHTING);
-}
-
-void movimientoSpline()
-{
-	float t;
-	float tAux;
-	CVector ter3,ter2,ter1,ter;
-	CVector Punto;
-
-	float delta_t=1.0f/resolucion;
-	static int pcAct=1;
-	static int segAct=0;
-
-	ter3=puntosdeControl[pcAct-1]*-1.0f+puntosdeControl[pcAct]*3.0f+puntosdeControl[pcAct+1]*-3.0f+puntosdeControl[pcAct+2];
-	ter2=puntosdeControl[pcAct-1]*3.0f+puntosdeControl[pcAct]*-6.0f+puntosdeControl[pcAct+1]*3.0f;
-	ter1=puntosdeControl[pcAct-1]*-3.0f+puntosdeControl[pcAct+1]*3.0f;
-	ter=puntosdeControl[pcAct-1]+puntosdeControl[pcAct]*4.0f+puntosdeControl[pcAct+1];
-
-	t=segAct*delta_t;
-	Punto=(ter3*pow(t,3)+ter2*pow(t,2)+ter1*t+ter)/6.0f;
-	
-	pAct=Punto;
-	if(pSpAct < totalP-1)
-	{
-		if(segAct < resolucion-1)
-		{
-			tAux=(segAct+1)*delta_t;
-			pSig=(ter3*pow(tAux,3)+ter2*pow(tAux,2)+ter1*tAux+ter)/6.0f;
-		}
-		else
-		{
-			tAux=0.0f;
-			if(pcAct < 18)
-			{
-				CVector ter_=puntosdeControl[(pcAct+1)-1]+puntosdeControl[(pcAct+1)]*4.0f+puntosdeControl[(pcAct+1)+1];
-				pSig=ter_/6.0f;
-			}
-			else
-			{
-				CVector ter_=puntosdeControl[1-1]+puntosdeControl[1]*4.0f+puntosdeControl[1+1];
-				pSig=ter_/6.0f;
-			}
-		}
-		
-		DirSp=Normaliza(pSig-pAct);
-	}
-	
-
-	if(segAct < resolucion-1)
-	{
-		segAct++;
-		pSpAct++;
-	}
-	else
-	{
-		if(pcAct < 18) //max-2
-			pcAct++;
-		else
-		{
-			pcAct=1;
-			pSpAct=0;
-			if(t > 0.9f)
-				infGame.estadoJuego=6;
-		}
-
-		if(pcAct < 18) 
-			segAct=0;
-	}
-
-	camSpline=Punto;
-	objSpline=Punto+DirSp*5.0f;
-	//objSpline=CVector(0.0f, 0.0f, 0.0f);
 }
 
 //PARTÍCULAS -- cambio 4
@@ -3510,37 +1556,17 @@ int RenderizaEscena(GLvoid)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glLoadIdentity();
 		
-	//gluLookAt(-100.0f, 30.0f, 90.0f, -30.0f, 25.0f, 0.0f, 0, 1, 0);
-	if(infGame.estadoJuego == 9)
-	{
-		movimientoSpline();
-		gluLookAt(camSpline.x, camSpline.y, camSpline.z, objSpline.x, objSpline.y, objSpline.z, 0.0f, 1.0f, 0.0f);
-	}
-	else if(infGame.estadoJuego == 6)
-		gluLookAt(player1.PosicionObj.x-10.0f, player1.PosicionObj.y+30.0f, player1.PosicionObj.z+40.0f, 
-				  player1.PosicionObj.x, player1.PosicionObj.y+18.0f, player1.PosicionObj.z, 
-				  0.0f, 1.0f, 0.0f);
+	if (infGame.estadoJuego == 6)
+		gluLookAt(0.0f, 75.0f, 50.0f, 0.0f, -125.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
-	//AlturaPiso();
 					
 	ActualizaLuzParam();
-	
-	if(player1.kick == true)
-		AnimacionSalto();
-
+		
 	glDisable(GL_LIGHT0);
 	glEnable(GL_LIGHT1);
 
 	DibujaEscenario();
-	dibujaSpline();
-	ejemploDeteccionCamara();
-
-	dibujaCajaColision(&cajaPersonaje);
-	for(int i=0; i < 7; i++)
-		dibujaCajaColision(&cajaEscenario[i]);
-	dibujaEsferadeColision(&esferaPersonaje);
-	dibujaEsferadeColision(&esferaEnemigo);
-
+	
 	if(player1.visible == true)
 	{
 		glPushMatrix();
@@ -3561,12 +1587,12 @@ int RenderizaEscena(GLvoid)
 	//1er paso de la prueba de pase de profundidad
 	glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
 	glCullFace(GL_BACK);
-	dibujaVolumendeSombra2();
+	dibujaVolumendeSombra();
 
 	//2do paso de la prueba de pase de profundidad
 	glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
 	glCullFace(GL_FRONT);
-	dibujaVolumendeSombra2();
+	dibujaVolumendeSombra();
 
 	glCullFace(GL_BACK);
 
@@ -3580,7 +1606,6 @@ int RenderizaEscena(GLvoid)
 	glDisable(GL_LIGHT1);
 
 	DibujaEscenario();
-	ejemploDeteccionCamara();
 
 	if(player1.visible == true)
 	{
@@ -3594,54 +1619,8 @@ int RenderizaEscena(GLvoid)
 
 	glDisable(GL_STENCIL_TEST);
 
-	//dibujaModelo();
-	dibujaModeloArchivo();
-
-	//PARTÍCULAS -- cambio 6
-
-	//Las partículas deben estar orientada hacia la cámara siempre, ya que de otro modo, por ejemplo si se ven desde un lado
-	//se notaría el "truco", que solo son un conjunto de planos texturizados moviendose con cierto patrón y velocidad para
-	//representar el efecto. Para evitar eso se usa una técnica llamada billboarding que consiste en calcular el ángulo que
-	//deben girarte las partículas para que siempre "vean" a la cámara
-
-	//Dependiendo el efecto y el objeto al que se asocian las partículas en la escena, el billboarding se puede calcular para
-	//cada partícula o para todo el grupo como en este ejemplo.
-
-	//1. Se define el valor de la normal para cada partícula o para el grupo teniendo en cuenta su posición y ángulo inicial
-	//2. Se calcula un vector que va desde cada partícula o la posición del grupo hacia la cámara
-	//3. Se determina el angulo que hay entre esos dos vectores y se usa para rotar cada partícula o el grupo, de modo que la normal
-	//ahora apuntaría hacia la cámara.
-
-	CVector N, ObjCamVec, up;
-	float angcos;
-
-	//Billboarding
-	N=CVector(0.0f, 0.0f, 1.0f); //Orientación original del objeto
-	ObjCamVec=CVector(player1.PosicionObj.x-10.0f, player1.PosicionObj.y+30.0f, player1.PosicionObj.z+40.0f)-player1.PosicionObj;
-
-	//N.y=0.0f;
-	ObjCamVec.y=0.0f;
-	
-	ObjCamVec=Normaliza(ObjCamVec);
-
-	up=Cruz(N, ObjCamVec);
-	angcos=Punto(N, ObjCamVec);
-	float AngObj=(float)acos(angcos)*180.0f/PI;
-	
-	//PARTÍCULAS -- cambio 5
-	//Se incorpora el dibujo de las partículas en el lugar deseado en la escena
-
-	glPushMatrix();
-		glTranslatef(player1.PosicionObj.x, player1.PosicionObj.y+2.5f, player1.PosicionObj.z);
-		glRotatef(AngObj, 0.0f, 1.0f, 0.0f);
-		glScalef(3.0f, 3.0f, 3.0f);
-		DibujaParticulas();
-	glPopMatrix();
-
-	IndicadorVidas();
 	DibujaTextos();
 
-	actualizaMovPersonaje();
 
 	//Cambios para FPS
 	CalculateFrameRate();
@@ -3651,31 +1630,8 @@ int RenderizaEscena(GLvoid)
 
 void dibujaSegunEstado()
 {
-	if(infGame.estadoJuego == 1)
-	{
-		glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glLoadIdentity();
 
-		dibujaLogoStudio();
-	}
-	else if(infGame.estadoJuego == 2)
-	{
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glLoadIdentity();
-
-		dibujaPantalladeCarga();
-	}
-	else if(infGame.estadoJuego == 3)
-	{
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glLoadIdentity();
-
-		dibujaPantalladeIntroduccion();
-	}
-	else if(infGame.estadoJuego == 4 || infGame.estadoJuego == 5)
+	 if (infGame.estadoJuego == 1 || infGame.estadoJuego == 5)
 	{
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -3683,26 +1639,24 @@ void dibujaSegunEstado()
 
 		dibujaTituloJuego();
 	}
-	else if(infGame.estadoJuego == 6 || infGame.estadoJuego == 9)
+	else if (infGame.estadoJuego == 6 || infGame.estadoJuego == 9)
 	{
 		RenderizaEscena();
-		if(infGame.pausa == 1)
+		if (infGame.pausa == 1)
 			dibujaMenuPausa();
 
-		if(infGame.pausa == 0)
+		if (infGame.pausa == 0)
 		{
-			if(play)
+			if (play)
 			{
-				if(tipoAnim == 1) //caminar
-					animacion(KeyFrame1, maxKF1 , 15);
-				else if(tipoAnim == 2) //hurricane kick
-					animacion(KeyFrame2, maxKF2 , 3);
-				else if(tipoAnim == 3) //salto
-					animacion(KeyFrame3, maxKF3 , 10);
+				if (tipoAnim == 1) //caminar
+					animacion(KeyFrame1, maxKF1, 15);
+				else if (tipoAnim == 2) //hurricane kick
+					animacion(KeyFrame2, maxKF2, 3);
 			}
 		}
 	}
-	else if(infGame.estadoJuego == 8)
+	else if (infGame.estadoJuego == 8)
 	{
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -3711,7 +1665,6 @@ void dibujaSegunEstado()
 		dibujaMenuOpciones();
 	}
 }
-
 GLvoid DestruyeVentanaOGL(GLvoid)						// Elimina la ventana apropiadamente
 {
 	if (hRC)											// Si existe un contexto de renderizado...
@@ -4206,7 +2159,7 @@ void manejaEventosMain()
 			{
 				if(infGame.opcionMenuSelec == 0)
 				{
-					infGame.estadoJuego=9;
+					infGame.estadoJuego=6;
 					if(infGame.opMenuPrinc.sonido == 1)
 					{
 						sonidoF[2].pausaSonido(true);
@@ -4264,19 +2217,14 @@ void manejaEventosMain()
 		{
 			if(estadoTeclaLeft == 0)
 			{
-				if(infGame.opMenuPrinc.opcionSelec == 0) //dificultad
-				{
-					if(infGame.opMenuPrinc.dificultad > 0)
-						infGame.opMenuPrinc.dificultad--;
-				}
-				else if(infGame.opMenuPrinc.opcionSelec == 1) //vidas
+				if(infGame.opMenuPrinc.opcionSelec == 0) //vidas
 				{
 					if(infGame.opMenuPrinc.numVidas == 7)
 						infGame.opMenuPrinc.numVidas=5;
 					else if(infGame.opMenuPrinc.numVidas == 5)
 						infGame.opMenuPrinc.numVidas=3;
 				}
-				else if(infGame.opMenuPrinc.opcionSelec == 2) //sonido
+				else if(infGame.opMenuPrinc.opcionSelec == 1) //sonido
 					infGame.opMenuPrinc.sonido=0;
 					
 				estadoTeclaLeft=1;
@@ -4289,19 +2237,14 @@ void manejaEventosMain()
 		{
 			if(estadoTeclaRight == 0)
 			{
-				if(infGame.opMenuPrinc.opcionSelec == 0) //dificultad
-				{
-					if(infGame.opMenuPrinc.dificultad < 2)
-						infGame.opMenuPrinc.dificultad++;
-				}
-				else if(infGame.opMenuPrinc.opcionSelec == 1) //vidas
+				if(infGame.opMenuPrinc.opcionSelec == 0) //vidas
 				{
 					if(infGame.opMenuPrinc.numVidas == 3)
 						infGame.opMenuPrinc.numVidas=5;
 					else if(infGame.opMenuPrinc.numVidas == 5)
 						infGame.opMenuPrinc.numVidas=7;
 				}
-				else if(infGame.opMenuPrinc.opcionSelec == 2) //sonido
+				else if(infGame.opMenuPrinc.opcionSelec == 1) //sonido
 					infGame.opMenuPrinc.sonido=1;
 
 				estadoTeclaRight=1;
@@ -4314,7 +2257,7 @@ void manejaEventosMain()
 		{
 			if(menuOpcionesActivo == 1)
 			{
-				if(infGame.opMenuPrinc.opcionSelec == 3)
+				if(infGame.opMenuPrinc.opcionSelec == 2)
 				{
 					infGame.estadoJuego=5;
 					menuPrincipalActivo=0;
@@ -4342,7 +2285,7 @@ void manejaEventosMain()
 			{
 				if(player1.kick==false && player1.saltando == false)
 				{
-					//ControlPersonaje2(3);
+					ControlPersonaje(3);
 					player1.caminando=true;
 					player1.dirZ=2;
 					player1.AngObj=180.0f;
@@ -4384,7 +2327,7 @@ void manejaEventosMain()
 			{
 				if(player1.kick==false && player1.saltando == false)
 				{
-					//ControlPersonaje2(4);
+					ControlPersonaje(4);
 					player1.caminando=true;
 					player1.dirZ=1;
 					player1.AngObj=0.0f;
@@ -4426,7 +2369,7 @@ void manejaEventosMain()
 			{
 				if(player1.kick==false && player1.saltando == false)
 				{
-					//ControlPersonaje2(2);
+					ControlPersonaje(2);
 					player1.caminando=true;
 					player1.dirX=2;
 					player1.AngObj=-90.0f;
@@ -4468,7 +2411,7 @@ void manejaEventosMain()
 			{
 				if(player1.kick==false && player1.saltando == false)
 				{
-					//ControlPersonaje2(1);
+					ControlPersonaje(1);
 					player1.caminando=true;
 					player1.dirX=1;
 					player1.AngObj=90.0f;
@@ -4662,236 +2605,3 @@ void manejaEventosMain()
 		}
 	}
 }
-
-//int ManejaTeclado()
-//{
-//	//Al presionar cualquiera de las teclas de dirección se iniciará la animación de caminar
-//	//Al soltar la tecla presionada se detiene la animación.
-//	if(GetKeyState(VK_UP) & 0x80) //Si está presionada la tecla UP
-//	{
-//		if(player1.kick==false)
-//		{
-//			ControlPersonaje2(3);
-//			
-//			if(play==false) //Para que la asignación de valores siguiente solo se haga una vez y empiece la animación
-//			{
-//				//Se le asignan a las variables del personaje los 
-//				//valores almacenados en el primer keyframe para que
-//				//inicie desde ahí la animación.
-//				Angt1   = KeyFrame1[0].Angt1;
-//				Angt2   = KeyFrame1[0].Angt2;
-//				Angc1   = KeyFrame1[0].Angc1;
-//				Angc2   = KeyFrame1[0].Angc2;
-//				Angbi1  = KeyFrame1[0].Angbi1;
-//				Angbi2  = KeyFrame1[0].Angbi2;
-//				Angbib  = KeyFrame1[0].Angbib;
-//				Angbd1  = KeyFrame1[0].Angbd1;
-//				Angbd2  = KeyFrame1[0].Angbd2;
-//				Angbdb  = KeyFrame1[0].Angbdb;
-//				Angpizq = KeyFrame1[0].Angpizq;
-//				Angpder = KeyFrame1[0].Angpder;
-//				Angpi   = KeyFrame1[0].Angpi;
-//				Angpd   = KeyFrame1[0].Angpd;
-//				Xtor    = KeyFrame1[0].Xtor;
-//				Ytor    = KeyFrame1[0].Ytor;
-//				Ztor    = KeyFrame1[0].Ztor;
-//
-//				play=true;
-//				playIndex=0;
-//				tipoAnim=1;
-//			}
-//		}
-//	}
-//
-//	if(GetKeyState(VK_DOWN) & 0x80) //Si está presionada la tecla DOWN
-//	{
-//		if(player1.kick==false)
-//		{
-//			ControlPersonaje2(4);
-//			
-//			if(play==false && player1.kick==false) //Para que la asignación de valores siguiente solo se haga una vez y empiece la animación
-//			{
-//				//Se le asignan a las variables del personaje los 
-//				//valores almacenados en el primer keyframe para que
-//				//inicie desde ahí la animación.
-//				Angt1   = KeyFrame1[0].Angt1;
-//				Angt2   = KeyFrame1[0].Angt2;
-//				Angc1   = KeyFrame1[0].Angc1;
-//				Angc2   = KeyFrame1[0].Angc2;
-//				Angbi1  = KeyFrame1[0].Angbi1;
-//				Angbi2  = KeyFrame1[0].Angbi2;
-//				Angbib  = KeyFrame1[0].Angbib;
-//				Angbd1  = KeyFrame1[0].Angbd1;
-//				Angbd2  = KeyFrame1[0].Angbd2;
-//				Angbdb  = KeyFrame1[0].Angbdb;
-//				Angpizq = KeyFrame1[0].Angpizq;
-//				Angpder = KeyFrame1[0].Angpder;
-//				Angpi   = KeyFrame1[0].Angpi;
-//				Angpd   = KeyFrame1[0].Angpd;
-//				Xtor    = KeyFrame1[0].Xtor;
-//				Ytor    = KeyFrame1[0].Ytor;
-//				Ztor    = KeyFrame1[0].Ztor;
-//
-//				play=true;
-//				playIndex=0;
-//				tipoAnim=1;
-//			}
-//		}
-//	}
-//
-//	if(GetKeyState(VK_LEFT) & 0x80) //Si está presionada la tecla LEFT
-//	{
-//		if(player1.kick==false)
-//		{
-//			ControlPersonaje2(2);
-//		
-//			if(play==false && player1.kick==false) //Para que la asignación de valores siguiente solo se haga una vez y empiece la animación
-//			{
-//				//Se le asignan a las variables del personaje los 
-//				//valores almacenados en el primer keyframe para que
-//				//inicie desde ahí la animación.
-//				Angt1   = KeyFrame1[0].Angt1;
-//				Angt2   = KeyFrame1[0].Angt2;
-//				Angc1   = KeyFrame1[0].Angc1;
-//				Angc2   = KeyFrame1[0].Angc2;
-//				Angbi1  = KeyFrame1[0].Angbi1;
-//				Angbi2  = KeyFrame1[0].Angbi2;
-//				Angbib  = KeyFrame1[0].Angbib;
-//				Angbd1  = KeyFrame1[0].Angbd1;
-//				Angbd2  = KeyFrame1[0].Angbd2;
-//				Angbdb  = KeyFrame1[0].Angbdb;
-//				Angpizq = KeyFrame1[0].Angpizq;
-//				Angpder = KeyFrame1[0].Angpder;
-//				Angpi   = KeyFrame1[0].Angpi;
-//				Angpd   = KeyFrame1[0].Angpd;
-//				Xtor    = KeyFrame1[0].Xtor;
-//				Ytor    = KeyFrame1[0].Ytor;
-//				Ztor    = KeyFrame1[0].Ztor;
-//
-//				play=true;
-//				playIndex=0;
-//				tipoAnim=1;
-//			}
-//		}
-//	}
-//
-//	if(GetKeyState(VK_RIGHT) & 0x80) //Si está presionada la tecla RIGHT
-//	{
-//		if(player1.kick==false)
-//		{
-//			ControlPersonaje2(1);
-//			
-//			if(play==false && player1.kick==false) //Para que la asignación de valores siguiente solo se haga una vez y empiece la animación
-//			{
-//				//Se le asignan a las variables del personaje los 
-//				//valores almacenados en el primer keyframe para que
-//				//inicie desde ahí la animación.
-//				Angt1   = KeyFrame1[0].Angt1;
-//				Angt2   = KeyFrame1[0].Angt2;
-//				Angc1   = KeyFrame1[0].Angc1;
-//				Angc2   = KeyFrame1[0].Angc2;
-//				Angbi1  = KeyFrame1[0].Angbi1;
-//				Angbi2  = KeyFrame1[0].Angbi2;
-//				Angbib  = KeyFrame1[0].Angbib;
-//				Angbd1  = KeyFrame1[0].Angbd1;
-//				Angbd2  = KeyFrame1[0].Angbd2;
-//				Angbdb  = KeyFrame1[0].Angbdb;
-//				Angpizq = KeyFrame1[0].Angpizq;
-//				Angpder = KeyFrame1[0].Angpder;
-//				Angpi   = KeyFrame1[0].Angpi;
-//				Angpd   = KeyFrame1[0].Angpd;
-//				Xtor    = KeyFrame1[0].Xtor;
-//				Ytor    = KeyFrame1[0].Ytor;
-//				Ztor    = KeyFrame1[0].Ztor;
-//
-//				play=true;
-//				playIndex=0;
-//				tipoAnim=1;
-//			}
-//		}
-//	}
-//
-//	if((GetAsyncKeyState('Z')&1) == 1)
-//	{
-//		if(player1.kick == false) //Para que la asignación de valores siguiente solo se haga una vez y empiece la animación
-//		{
-//			//Se le asignan a las variables del personaje los 
-//			//valores almacenados en el primer keyframe para que
-//			//inicie desde ahí la animación.
-//			Angt1   = KeyFrame2[0].Angt1;
-//			Angt2   = KeyFrame2[0].Angt2;
-//			Angc1   = KeyFrame2[0].Angc1;
-//			Angc2   = KeyFrame2[0].Angc2;
-//			Angbi1  = KeyFrame2[0].Angbi1;
-//			Angbi2  = KeyFrame2[0].Angbi2;
-//			Angbib  = KeyFrame2[0].Angbib;
-//			Angbd1  = KeyFrame2[0].Angbd1;
-//			Angbd2  = KeyFrame2[0].Angbd2;
-//			Angbdb  = KeyFrame2[0].Angbdb;
-//			Angpizq = KeyFrame2[0].Angpizq;
-//			Angpder = KeyFrame2[0].Angpder;
-//			Angpi   = KeyFrame2[0].Angpi;
-//			Angpd   = KeyFrame2[0].Angpd;
-//			Xtor    = KeyFrame2[0].Xtor;
-//			Ytor    = KeyFrame2[0].Ytor;
-//			Ztor    = KeyFrame2[0].Ztor;
-//
-//			play=true;
-//			playIndex=0;
-//			tipoAnim=2;
-//
-//			player1.kick=true;
-//			player1.contAuxAnim=0;
-//		}
-//	}
-//
-//	//Para que al soltar la tecla presionada el personaje no quede en una posición
-//	//intermedia de la animación se asignan los valores originales a las variables
-//	if(!(GetKeyState(VK_UP) & 0x80 || GetKeyState(VK_DOWN) & 0x80
-//	|| GetKeyState(VK_LEFT) & 0x80  || GetKeyState(VK_RIGHT) & 0x80)) //Si no está presionada alguna de esas teclas
-//	{
-//		if(tipoAnim == 1)
-//		{
-//			play=false;
-//			Angt1   = 0.0f;
-//			Angt2   = 0.0f;
-//			Angc1   = 0.0f;
-//			Angc2   = 0.0f;
-//			Angbi1  = 0.0f;
-//			Angbi2  = 0.0f;
-//			Angbib  = 0.0f;
-//			Angbd1  = 0.0f;
-//			Angbd2  = 0.0f;
-//			Angbdb  = 0.0f;
-//			Angpizq = 0.0f;
-//			Angpder = 0.0f;
-//			Angpi   = 0.0f;
-//			Angpd   = 0.0f;
-//			Xtor    = 0.0f;
-//			Ytor    = 0.0f;
-//			Ztor    = 0.0f;
-//		}
-//	}
-//
-//	if(keys[VK_HOME])
-//	{
-//		ControlPersonaje(5);
-//	}
-//
-//	if(keys[VK_END])
-//	{
-//		ControlPersonaje(6);
-//	}
-//
-//	if(keys['A'])
-//	{
-//		
-//	}
-//	if(keys['S'])
-//	{
-//		
-//	}
-//	
-//
-//	return TRUE;
-//}

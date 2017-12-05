@@ -1,4 +1,4 @@
 ﻿cl : Línea de comandos warning D9007: '/Gm' requiere '/Zi o /ZI'; opción omitida
   Main.cpp
-  OGL_CodigoBase.vcxproj -> D:\Users\marce\Documents\Noveno Semestre\Computacion Grafica Avanzada\Programa base v 2.7\Debug\OGL_CodigoBase.exe
-  OGL_CodigoBase.vcxproj -> D:\Users\marce\Documents\Noveno Semestre\Computacion Grafica Avanzada\Programa base v 2.7\Debug\OGL_CodigoBase.pdb (Full PDB)
+  OGL_CodigoBase.vcxproj -> D:\Users\marce\Documents\Noveno Semestre\Computacion Grafica Avanzada\Programa\ProyectoGraficaAvanzada\Debug\OGL_CodigoBase.exe
+  OGL_CodigoBase.vcxproj -> D:\Users\marce\Documents\Noveno Semestre\Computacion Grafica Avanzada\Programa\ProyectoGraficaAvanzada\Debug\OGL_CodigoBase.pdb (Full PDB)
