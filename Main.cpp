@@ -1008,15 +1008,18 @@ void DibujaEjes()
 void DibujaCaja(int tipo)
 {
 	glEnable(GL_TEXTURE_2D);
-
+	int num;
 	//cara frontal
-	if(tipo == 1)
-		glBindTexture(GL_TEXTURE_2D, textura[17].texID);
-	else if(tipo == 2)
-		glBindTexture(GL_TEXTURE_2D, textura[18].texID);
-	else if(tipo == 3)
-		glBindTexture(GL_TEXTURE_2D, textura[19].texID);
+	if (tipo == 1)
+		num = 17; //Selección de la textura bloques nivel 1
+	else if (tipo == 2)
+		num = 18; //Selección de la textura bloques nivel 2
+	else if (tipo == 3)
+		num = 19; //Bloques del límite del juego lados
+	else if (tipo == 4)
+		num = 20; //Bloques limite de juego abajo
 
+		glBindTexture(GL_TEXTURE_2D, textura[num].texID);
 	glBegin(GL_QUADS);
 		glNormal3f(0.0f,0.0f,1.0f);
 		glTexCoord2f(0.0f, 0.0f); glVertex3f(-2.5f, -2.0f, 3.5f);
@@ -1025,30 +1028,9 @@ void DibujaCaja(int tipo)
 		glTexCoord2f(0.0f, 1.0f); glVertex3f(-2.5f,  2.0f, 3.5f);
 	glEnd();
 
-	//cara izq
-	glBindTexture(GL_TEXTURE_2D, textura[20].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(-1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-2.5f, -2.0f, -3.5f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-2.5f, -2.0f,  3.5f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-2.5f,  2.0f,  3.5f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-2.5f,  2.0f, -3.5f);
-	glEnd();
-
-	//cara der
-	glBindTexture(GL_TEXTURE_2D, textura[20].texID);
-
-	glBegin(GL_QUADS);
-		glNormal3f(1.0f,0.0f,0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(2.5f, -2.0f,  3.5f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(2.5f, -2.0f, -3.5f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(2.5f,  2.0f, -3.5f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(2.5f,  2.0f,  3.5f);
-	glEnd();
 
 	//cara sup
-	glBindTexture(GL_TEXTURE_2D, textura[21].texID);
+	glBindTexture(GL_TEXTURE_2D, textura[num].texID);
 
 	glBegin(GL_QUADS);
 		glNormal3f(0.0f,1.0f,0.0f);
@@ -1058,31 +1040,243 @@ void DibujaCaja(int tipo)
 		glTexCoord2f(0.0f, 1.0f); glVertex3f( 2.5f, 2.0f, -3.5f);
 	glEnd();
 
+
+
 	glDisable(GL_TEXTURE_2D);
 }
 
 
-void DibujaEscenario()
+void DibujaEscenarioBase()
 {
 	glEnable(GL_TEXTURE_2D);
 
-	//Plano 2 (piso 1)
+	//Plano del piso
 	glBindTexture(GL_TEXTURE_2D, textura[4].texID);
-
 	glBegin(GL_QUADS);
-	glNormal3f(0.0f, 1.0f, 0.0f);
-	glTexCoord2f(0.1f, 0.0f); glVertex3f(-30.0f, 0.0f, 60.0f);
-	glTexCoord2f(1.0f, 0.0f); glVertex3f(30.0f, 0.0f, 60.0f);
-	glTexCoord2f(1.0f, 1.0f); glVertex3f(30.0f, 0.0f, 0.0f);
-	glTexCoord2f(0.1f, 1.0f); glVertex3f(-30.0f, 0.0f, 0.0f);
+		glNormal3f(0.0f, 1.0f, 0.0f);
+		glTexCoord2f(0.1f, 0.0f); glVertex3f(-30.0f, 0.0f, 57.5f);
+		glTexCoord2f(5.0f, 0.0f); glVertex3f(30.0f, 0.0f, 57.5f);
+		glTexCoord2f(5.0f, 5.0f); glVertex3f(30.0f, 0.0f, 0.0f);
+		glTexCoord2f(0.1f, 5.0f); glVertex3f(-30.0f, 0.0f, 0.0f);
 	glEnd();
 
-	//Caja 1
+	//Cajas limite escenario izquierda
 	glPushMatrix();
-		glTranslatef(8.9f, 19.0f, 3.5f);
-		DibujaCaja(2);
+		glTranslatef(-27.5f, 2.5f, 5.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
 	glPopMatrix();
 
+	glPushMatrix();
+		glTranslatef(-27.5f, 2.5f, 10.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-27.5f, 2.5f, 15.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-27.5f, 2.5f, 20.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-27.5f, 2.5f, 25.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-27.5f, 2.5f, 25.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-27.5f, 2.5f, 30.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-27.5f, 2.5f, 35.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-27.5f, 2.5f, 40.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-27.5f, 2.5f, 45.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-27.5f, 2.5f, 50.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-27.5f, 2.5f, 55.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	//Cajas limite escenario derecha
+	glPushMatrix();
+	glTranslatef(27.5f, 2.5f, 5.0f);
+	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+	DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(27.5f, 2.5f, 10.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(27.5f, 2.5f, 15.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(27.5f, 2.5f, 20.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(27.5f, 2.5f, 25.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(27.5f, 2.5f, 25.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(27.5f, 2.5f, 30.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(27.5f, 2.5f, 35.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(27.5f, 2.5f, 40.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(27.5f, 2.5f, 45.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(27.5f, 2.5f, 50.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(27.5f, 2.5f, 55.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+	glPopMatrix();
+	 
+	//Límite del escenario inferior
+
+	glPushMatrix();
+		glTranslatef(22.5f, 7.5f, 55.5f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(17.5f, 7.5f, 55.5f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(12.5f, 7.5f, 55.5f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(7.5f, 7.5f, 55.5f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(2.5f, 7.5f, 55.5f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-2.5f, 7.5f, 55.5f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-7.5f, 7.5f, 55.5f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-12.5f, 7.5f, 55.5f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-17.5f, 7.5f, 55.5f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(-22.5f, 7.5f, 55.5f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+	glPopMatrix();
 }
 
 void DibujaPersonaje()
@@ -1565,7 +1759,7 @@ int RenderizaEscena(GLvoid)
 	glDisable(GL_LIGHT0);
 	glEnable(GL_LIGHT1);
 
-	DibujaEscenario();
+	DibujaEscenarioBase();
 	
 	if(player1.visible == true)
 	{
@@ -1605,7 +1799,7 @@ int RenderizaEscena(GLvoid)
 	glEnable(GL_LIGHT0);
 	glDisable(GL_LIGHT1);
 
-	DibujaEscenario();
+	DibujaEscenarioBase();
 
 	if(player1.visible == true)
 	{
