@@ -24,6 +24,7 @@ GLUquadricObj	*e;
 
 void manejaEventosMain();
 void cargaConfiguracion();
+void actualizaCajaColPersonaje();
 
 particles particle[MAX_PARTICULAS];	// Arreglo de partículas
 
@@ -89,8 +90,8 @@ CVector camSpline;
 CVector objSpline;
 
 cajaCol cajaPersonaje;
-cajaCol cajaEscenario[7];
-int numCajas=7;
+cajaCol cajaEscenario[55];
+int numCajas=55;
 float altPiso=0.0f;
 float altMin=-30.0f;
 esferaCol esferaPersonaje;
@@ -714,6 +715,267 @@ void DatosAnimacion()
 
 }
 
+void iniciaCajasdeColision() 
+{
+	cajaPersonaje.pos = CVector(player1.PosicionObj.x, player1.PosicionObj.y + 3.0f, player1.PosicionObj.z);
+	cajaPersonaje.tamaño = CVector(6.0f, 6.0f, 6.0f);
+	cajaPersonaje.xMin = cajaPersonaje.pos.x - cajaPersonaje.tamaño.x*0.5f;
+	cajaPersonaje.xMax = cajaPersonaje.pos.x + cajaPersonaje.tamaño.x*0.5f;
+	cajaPersonaje.yMin = cajaPersonaje.pos.y - cajaPersonaje.tamaño.y*0.5f;
+	cajaPersonaje.yMax = cajaPersonaje.pos.y + cajaPersonaje.tamaño.y*0.5f;
+	cajaPersonaje.zMin = cajaPersonaje.pos.z - cajaPersonaje.tamaño.z*0.5f;
+	cajaPersonaje.zMax = cajaPersonaje.pos.z + cajaPersonaje.tamaño.z*0.5f;
+
+	cajaEscenario[0].pos = CVector(-27.5f, 5.0f, 27.5f); //Pared izquierda límite
+	cajaEscenario[0].tamaño = CVector(7.0f, 8.0f, 53.0f);
+
+	cajaEscenario[1].pos = CVector(27.5f, 5.0f, 27.5f); //Pared derecha límite
+	cajaEscenario[1].tamaño = CVector(7.0f, 8.0f, 53.0f);
+
+	cajaEscenario[2].pos = CVector(0.0f, 5.0f, 58.0f); //Pared izquierda límite
+	cajaEscenario[2].tamaño = CVector(53.0f, 8.0f, 7.0f);
+	
+
+
+	for (int i = 0; i<7; i++)
+	{
+		cajaEscenario[i].xMin = cajaEscenario[i].pos.x - cajaEscenario[i].tamaño.x*0.5f;
+		cajaEscenario[i].xMax = cajaEscenario[i].pos.x + cajaEscenario[i].tamaño.x*0.5f;
+		cajaEscenario[i].yMin = cajaEscenario[i].pos.y - cajaEscenario[i].tamaño.y*0.5f;
+		cajaEscenario[i].yMax = cajaEscenario[i].pos.y + cajaEscenario[i].tamaño.y*0.5f;
+		cajaEscenario[i].zMin = cajaEscenario[i].pos.z - cajaEscenario[i].tamaño.z*0.5f;
+		cajaEscenario[i].zMax = cajaEscenario[i].pos.z + cajaEscenario[i].tamaño.z*0.5f;
+	}
+}
+
+void dibujaCajaColision(cajaCol *caja)
+{
+	glDisable(GL_LIGHTING);
+	glColor3f(1.0f, 1.0f, 0.0f);
+	glLineWidth(3.0f);
+
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(caja->xMin, caja->yMin, caja->zMax);
+	glVertex3f(caja->xMax, caja->yMin, caja->zMax);
+	glVertex3f(caja->xMax, caja->yMax, caja->zMax);
+	glVertex3f(caja->xMin, caja->yMax, caja->zMax);
+	glEnd();
+
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(caja->xMin, caja->yMin, caja->zMin);
+	glVertex3f(caja->xMax, caja->yMin, caja->zMin);
+	glVertex3f(caja->xMax, caja->yMax, caja->zMin);
+	glVertex3f(caja->xMin, caja->yMax, caja->zMin);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex3f(caja->xMin, caja->yMax, caja->zMin);
+	glVertex3f(caja->xMin, caja->yMax, caja->zMax);
+
+	glVertex3f(caja->xMax, caja->yMax, caja->zMin);
+	glVertex3f(caja->xMax, caja->yMax, caja->zMax);
+
+	glVertex3f(caja->xMin, caja->yMin, caja->zMin);
+	glVertex3f(caja->xMin, caja->yMin, caja->zMax);
+
+	glVertex3f(caja->xMax, caja->yMin, caja->zMin);
+	glVertex3f(caja->xMax, caja->yMin, caja->zMax);
+	glEnd();
+
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glLineWidth(1.0f);
+	glEnable(GL_LIGHTING);
+}
+
+
+bool colisionCajas(int dir)
+{
+
+	bool col = false;
+	CVector pSig;
+	CVector A, B, C, D, E, F, G, H;
+
+	for (int i = 0; i<numCajas; i++)
+	{
+		if (dir == 1) //x+
+		{
+			pSig.x = player1.PosicionObj.x + player1.VelocidadObj;
+			pSig.y = player1.PosicionObj.y;
+			pSig.z = player1.PosicionObj.z;
+		}
+		else if (dir == 2) //x-
+		{
+			pSig.x = player1.PosicionObj.x - player1.VelocidadObj;
+			pSig.y = player1.PosicionObj.y;
+			pSig.z = player1.PosicionObj.z;
+		}
+		else if (dir == 3) //z+
+		{
+			pSig.x = player1.PosicionObj.x;
+			pSig.y = player1.PosicionObj.y;
+			pSig.z = player1.PosicionObj.z + player1.VelocidadObj;
+		}
+		else if (dir == 4) //z-
+		{
+			pSig.x = player1.PosicionObj.x;
+			pSig.y = player1.PosicionObj.y;
+			pSig.z = player1.PosicionObj.z - player1.VelocidadObj;
+		}
+		else if (dir == 5) //y+
+		{
+			pSig.x = player1.PosicionObj.x;
+			pSig.y = player1.PosicionObj.y + player1.VelocidadObj;
+			pSig.z = player1.PosicionObj.z;
+		}
+		else if (dir == 6) //y-
+		{
+			pSig.x = player1.PosicionObj.x;
+			pSig.y = player1.PosicionObj.y - player1.VelocidadObj;
+			pSig.z = player1.PosicionObj.z;
+		}
+
+		cajaPersonaje.pos = CVector(pSig.x, pSig.y, pSig.z);
+		cajaPersonaje.xMin = cajaPersonaje.pos.x - cajaPersonaje.tamaño.x*0.5f;
+		cajaPersonaje.xMax = cajaPersonaje.pos.x + cajaPersonaje.tamaño.x*0.5f;
+		cajaPersonaje.yMin = cajaPersonaje.pos.y - cajaPersonaje.tamaño.y*0.5f;
+		cajaPersonaje.yMax = cajaPersonaje.pos.y + cajaPersonaje.tamaño.y*0.5f;
+		cajaPersonaje.zMin = cajaPersonaje.pos.z - cajaPersonaje.tamaño.z*0.5f;
+		cajaPersonaje.zMax = cajaPersonaje.pos.z + cajaPersonaje.tamaño.z*0.5f;
+
+		//Inf-izq-front
+		A.x = cajaPersonaje.xMin;
+		A.y = cajaPersonaje.yMin;
+		A.z = cajaPersonaje.zMax;
+
+		//Inf-der-front
+		B.x = cajaPersonaje.xMax;
+		B.y = cajaPersonaje.yMin;
+		B.z = cajaPersonaje.zMax;
+
+		//Sup-der-front
+		C.x = cajaPersonaje.xMax;
+		C.y = cajaPersonaje.yMax;
+		C.z = cajaPersonaje.zMax;
+
+		//Sup-izq-front
+		D.x = cajaPersonaje.xMin;
+		D.y = cajaPersonaje.yMax;
+		D.z = cajaPersonaje.zMax;
+
+		//Inf-izq-tras
+		E.x = cajaPersonaje.xMin;
+		E.y = cajaPersonaje.yMin;
+		E.z = cajaPersonaje.zMin;
+
+		//Inf-der-tras
+		F.x = cajaPersonaje.xMax;
+		F.y = cajaPersonaje.yMin;
+		F.z = cajaPersonaje.zMin;
+
+		//Sup-der-tras
+		G.x = cajaPersonaje.xMax;
+		G.y = cajaPersonaje.yMax;
+		G.z = cajaPersonaje.zMin;
+
+		//Sup-izq-tras
+		H.x = cajaPersonaje.xMin;
+		H.y = cajaPersonaje.yMax;
+		H.z = cajaPersonaje.zMin;
+
+		if ((A.x > cajaEscenario[i].xMin && A.x < cajaEscenario[i].xMax && A.y > cajaEscenario[i].yMin && A.y < cajaEscenario[i].yMax && A.z > cajaEscenario[i].zMin && A.z < cajaEscenario[i].zMax)
+			|| (B.x > cajaEscenario[i].xMin && B.x < cajaEscenario[i].xMax && B.y > cajaEscenario[i].yMin && B.y < cajaEscenario[i].yMax && B.z > cajaEscenario[i].zMin && B.z < cajaEscenario[i].zMax)
+			|| (C.x > cajaEscenario[i].xMin && C.x < cajaEscenario[i].xMax && C.y > cajaEscenario[i].yMin && C.y < cajaEscenario[i].yMax && C.z > cajaEscenario[i].zMin && C.z < cajaEscenario[i].zMax)
+			|| (D.x > cajaEscenario[i].xMin && D.x < cajaEscenario[i].xMax && D.y > cajaEscenario[i].yMin && D.y < cajaEscenario[i].yMax && D.z > cajaEscenario[i].zMin && D.z < cajaEscenario[i].zMax)
+			|| (E.x > cajaEscenario[i].xMin && E.x < cajaEscenario[i].xMax && E.y > cajaEscenario[i].yMin && E.y < cajaEscenario[i].yMax && E.z > cajaEscenario[i].zMin && E.z < cajaEscenario[i].zMax)
+			|| (F.x > cajaEscenario[i].xMin && F.x < cajaEscenario[i].xMax && F.y > cajaEscenario[i].yMin && F.y < cajaEscenario[i].yMax && F.z > cajaEscenario[i].zMin && F.z < cajaEscenario[i].zMax)
+			|| (G.x > cajaEscenario[i].xMin && G.x < cajaEscenario[i].xMax && G.y > cajaEscenario[i].yMin && G.y < cajaEscenario[i].yMax && G.z > cajaEscenario[i].zMin && G.z < cajaEscenario[i].zMax)
+			|| (H.x > cajaEscenario[i].xMin && H.x < cajaEscenario[i].xMax && H.y > cajaEscenario[i].yMin && H.y < cajaEscenario[i].yMax && H.z > cajaEscenario[i].zMin && H.z < cajaEscenario[i].zMax))
+		{
+			col = true;
+
+			if (dir == 1) //x+
+				player1.PosicionObj.x = cajaEscenario[i].xMin - cajaPersonaje.tamaño.x*0.5f;
+			else if (dir == 2) //x-
+				player1.PosicionObj.x = cajaEscenario[i].xMax + cajaPersonaje.tamaño.x*0.5f;
+			else if (dir == 3) //z+
+				player1.PosicionObj.z = cajaEscenario[i].zMin - cajaPersonaje.tamaño.z*0.5f;
+			else if (dir == 4) //z-
+				player1.PosicionObj.z = cajaEscenario[i].zMax + cajaPersonaje.tamaño.z*0.5f;
+			else if (dir == 5) //y+
+				player1.PosicionObj.y = cajaEscenario[i].yMin - cajaPersonaje.tamaño.y*0.5f - 3.0f;
+			else if (dir == 6) //y-
+				player1.PosicionObj.y = cajaEscenario[i].yMax;
+
+			break;
+		}
+	}
+
+	return col;
+}
+
+void actualizaMovPersonaje()
+{
+	static int tiempoColPersonaje = 0;
+	static int tiempoColEnemigo = 0;
+
+	actualizaCajaColPersonaje();
+
+	if (esferaPersonaje.estado == 1)
+	{
+		if (tiempoColPersonaje < 20)
+			tiempoColPersonaje++;
+		else
+		{
+			tiempoColPersonaje = 0;
+			esferaPersonaje.estado = 0;
+		}
+	}
+
+	if (esferaEnemigo.estado == 1)
+	{
+		if (tiempoColEnemigo < 20)
+			tiempoColEnemigo++;
+		else
+		{
+			tiempoColEnemigo = 0;
+			esferaEnemigo.estado = 0;
+		}
+	}
+	if (player1.caminando == true)
+	{
+		if (player1.dirX == 1)
+		{
+			if (!colisionCajas(1))
+				player1.PosicionObj.x += player1.VelocidadObj;
+			else
+				player1.caminando = false;
+		}
+		else if (player1.dirX == 2)
+		{
+			if (!colisionCajas(2))
+				player1.PosicionObj.x -= player1.VelocidadObj;
+			else
+				player1.caminando = false;
+		}
+
+		if (player1.dirZ == 1)
+		{
+			if (!colisionCajas(3))
+				player1.PosicionObj.z += player1.VelocidadObj;
+			else
+				player1.caminando = false;
+		}
+		else if (player1.dirZ == 2)
+		{
+			if (!colisionCajas(4))
+				player1.PosicionObj.z -= player1.VelocidadObj;
+			else
+				player1.caminando = false;
+		}
+	}		
+}
+
+
 int IniGL(GLvoid)										// Aqui se configuran los parametros iniciales de OpenGL
 {
 	glShadeModel(GL_SMOOTH);							// Activa Smooth Shading
@@ -743,6 +1005,7 @@ int IniGL(GLvoid)										// Aqui se configuran los parametros iniciales de Ope
 	e=gluNewQuadric();
 
 	CargaModelos();
+	iniciaCajasdeColision(); //Llamada a caja de colision
 	IniVarsPlayer();
 	InicializaParametrosdeControl();
 	InicializaCamara();
@@ -963,47 +1226,20 @@ void ControlPersonaje(int funcion)
 		player1.PosicionObj.z+=player1.VelocidadObj;
 		player1.AngObj=0.0f;
 	}
+	actualizaCajaColPersonaje();
 }
 
-void DibujaEjes()
+void actualizaCajaColPersonaje()
 {
-	glBegin(GL_LINES);
-		//Eje X
-		glColor3f(1.0f,0.0f,0.0f);
-		glVertex3f(-100.0f, 0.0f, 0.0f);
-		glVertex3f( 100.0f, 0.0f, 0.0f);
-
-		//Eje Y
-		glColor3f(0.0f,1.0f,0.0f);
-		glVertex3f(0.0f, -100.0f, 0.0f);
-		glVertex3f(0.0f,  100.0f, 0.0f);
-
-		//Eje Z
-		glColor3f(0.0f,0.0f,1.0f);
-		glVertex3f(0.0f, 0.0f, -100.0f);
-		glVertex3f(0.0f, 0.0f,  100.0f);
-	glEnd();
-
-	glPointSize(10.0f);
-
-	glBegin(GL_POINTS);
-		//"Flecha" eje X
-		glColor3f(1.0f,0.0f,0.0f);
-		glVertex3f( 100.0f, 0.0f, 0.0f);
-
-		//"Flecha" eje Y
-		glColor3f(0.0f,1.0f,0.0f);
-		glVertex3f(0.0f,  100.0f, 0.0f);
-
-		//"Flecha" eje Z
-		glColor3f(0.0f,0.0f,1.0f);
-		glVertex3f(0.0f, 0.0f,  100.0f);
-	glEnd();
-
-	glPointSize(1.0f);
-
-	glColor3f(1.0f,1.0f,1.0f);
+	cajaPersonaje.pos = CVector(player1.PosicionObj.x, player1.PosicionObj.y + 3.5f, player1.PosicionObj.z);
+	cajaPersonaje.xMin = cajaPersonaje.pos.x - cajaPersonaje.tamaño.x*0.5f;
+	cajaPersonaje.xMax = cajaPersonaje.pos.x + cajaPersonaje.tamaño.x*0.5f;
+	cajaPersonaje.yMin = cajaPersonaje.pos.y - cajaPersonaje.tamaño.y*0.5f;
+	cajaPersonaje.yMax = cajaPersonaje.pos.y + cajaPersonaje.tamaño.y*0.5f;
+	cajaPersonaje.zMin = cajaPersonaje.pos.z - cajaPersonaje.tamaño.z*0.5f;
+	cajaPersonaje.zMax = cajaPersonaje.pos.z + cajaPersonaje.tamaño.z*0.5f;
 }
+
 
 void DibujaCaja(int tipo)
 {
@@ -1011,13 +1247,13 @@ void DibujaCaja(int tipo)
 	int num;
 	//cara frontal
 	if (tipo == 1)
-		num = 17; //Selección de la textura bloques nivel 1
+		num = 18; //Selección de la textura bloques
 	else if (tipo == 2)
-		num = 18; //Selección de la textura bloques nivel 2
+		num = 19; //Selección de la textura bloques cofre
 	else if (tipo == 3)
-		num = 19; //Bloques del límite del juego lados
+		num = 16; //Bloques del límite del juego lados
 	else if (tipo == 4)
-		num = 20; //Bloques limite de juego abajo
+		num = 17; //Bloques limite de juego abajo
 
 		glBindTexture(GL_TEXTURE_2D, textura[num].texID);
 	glBegin(GL_QUADS);
@@ -1063,146 +1299,146 @@ void DibujaEscenarioBase()
 	//Cajas limite escenario izquierda
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 5.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 10.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 15.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 20.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 25.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 25.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 30.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 35.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 40.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 45.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 50.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(-27.5f, 2.5f, 55.0f);
-		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	//Cajas limite escenario derecha
 	glPushMatrix();
 	glTranslatef(27.5f, 2.5f, 5.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 	DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(27.5f, 2.5f, 10.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(27.5f, 2.5f, 15.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(27.5f, 2.5f, 20.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(27.5f, 2.5f, 25.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(27.5f, 2.5f, 25.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(27.5f, 2.5f, 30.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(27.5f, 2.5f, 35.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(27.5f, 2.5f, 40.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(27.5f, 2.5f, 45.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(27.5f, 2.5f, 50.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(27.5f, 2.5f, 55.0f);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 		DibujaCaja(3);
 	glPopMatrix();
 	 
@@ -1606,7 +1842,7 @@ void dibujaVolumendeSombra()
 	CVector vertD[2];
 	CVector centro, centroP, centroD;
 
-	CVector posLuz=CVector(player1.PosicionObj.x-3.0f, player1.PosicionObj.y+35.0f, player1.PosicionObj.z-1.0f);
+	CVector posLuz=CVector(player1.PosicionObj.x-23.0f, player1.PosicionObj.y+35.0f, player1.PosicionObj.z-4.0f);
 
 	float ang, deltaAng;
 
@@ -1751,7 +1987,10 @@ int RenderizaEscena(GLvoid)
 	glLoadIdentity();
 		
 	if (infGame.estadoJuego == 6)
-		gluLookAt(0.0f, 75.0f, 50.0f, 0.0f, -125.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+		gluLookAt(0.0f, 80.0f, 44.0f, 0.0f, -125.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+		/*gluLookAt(player1.PosicionObj.x - 10.0f, player1.PosicionObj.y + 30.0f, player1.PosicionObj.z + 40.0f,
+			player1.PosicionObj.x, player1.PosicionObj.y + 18.0f, player1.PosicionObj.z,
+			0.0f, 1.0f, 0.0f); */
 
 					
 	ActualizaLuzParam();
@@ -1761,6 +2000,13 @@ int RenderizaEscena(GLvoid)
 
 	DibujaEscenarioBase();
 	
+
+	dibujaCajaColision(&cajaPersonaje);
+	for (int i = 0; i < 55; i++)
+	{
+		dibujaCajaColision(&cajaEscenario[i]);
+	}
+
 	if(player1.visible == true)
 	{
 		glPushMatrix();
@@ -1814,7 +2060,7 @@ int RenderizaEscena(GLvoid)
 	glDisable(GL_STENCIL_TEST);
 
 	DibujaTextos();
-
+	actualizaMovPersonaje();
 
 	//Cambios para FPS
 	CalculateFrameRate();
@@ -1833,7 +2079,7 @@ void dibujaSegunEstado()
 
 		dibujaTituloJuego();
 	}
-	else if (infGame.estadoJuego == 6 || infGame.estadoJuego == 9)
+	else if (infGame.estadoJuego == 6)
 	{
 		RenderizaEscena();
 		if (infGame.pausa == 1)
@@ -2674,78 +2920,6 @@ void manejaEventosMain()
 					Xtor    = 0.0f;
 					Ytor    = 0.0f;
 					Ztor    = 0.0f;
-				}
-			}
-
-			if(controlFunc.obtieneEstadoTecla(4) == 1) //Z
-			{
-				if(player1.kick == false && player1.saltando == false) //Para que la asignación de valores siguiente solo se haga una vez y empiece la animación
-				{
-					//Se le asignan a las variables del personaje los 
-					//valores almacenados en el primer keyframe para que
-					//inicie desde ahí la animación.
-					Angt1   = KeyFrame2[0].Angt1;
-					Angt2   = KeyFrame2[0].Angt2;
-					Angc1   = KeyFrame2[0].Angc1;
-					Angc2   = KeyFrame2[0].Angc2;
-					Angbi1  = KeyFrame2[0].Angbi1;
-					Angbi2  = KeyFrame2[0].Angbi2;
-					Angbib  = KeyFrame2[0].Angbib;
-					Angbd1  = KeyFrame2[0].Angbd1;
-					Angbd2  = KeyFrame2[0].Angbd2;
-					Angbdb  = KeyFrame2[0].Angbdb;
-					Angpizq = KeyFrame2[0].Angpizq;
-					Angpder = KeyFrame2[0].Angpder;
-					Angpi   = KeyFrame2[0].Angpi;
-					Angpd   = KeyFrame2[0].Angpd;
-					Xtor    = KeyFrame2[0].Xtor;
-					Ytor    = KeyFrame2[0].Ytor;
-					Ztor    = KeyFrame2[0].Ztor;
-
-					play=true;
-					playIndex=0;
-					tipoAnim=2;
-
-					player1.kick=true;
-					player1.contAuxAnim=0;
-
-					if(infGame.opMenuPrinc.sonido == 1)
-						sonidoF[1].reproduceSonido();
-				}
-			}
-
-			if(controlFunc.obtieneEstadoTecla(5) == 1) //X
-			{
-				if(player1.saltando == false && player1.kick == false
-					&& fabs(player1.PosicionObj.y - altPiso) < 0.01f)
-				{
-					//Se le asignan a las variables del personaje los 
-					//valores almacenados en el primer keyframe para que
-					//inicie desde ahí la animación.
-					Angt1   = KeyFrame3[0].Angt1;
-					Angt2   = KeyFrame3[0].Angt2;
-					Angc1   = KeyFrame3[0].Angc1;
-					Angc2   = KeyFrame3[0].Angc2;
-					Angbi1  = KeyFrame3[0].Angbi1;
-					Angbi2  = KeyFrame3[0].Angbi2;
-					Angbib  = KeyFrame3[0].Angbib;
-					Angbd1  = KeyFrame3[0].Angbd1;
-					Angbd2  = KeyFrame3[0].Angbd2;
-					Angbdb  = KeyFrame3[0].Angbdb;
-					Angpizq = KeyFrame3[0].Angpizq;
-					Angpder = KeyFrame3[0].Angpder;
-					Angpi   = KeyFrame3[0].Angpi;
-					Angpd   = KeyFrame3[0].Angpd;
-					Xtor    = KeyFrame3[0].Xtor;
-					Ytor    = KeyFrame3[0].Ytor;
-					Ztor    = KeyFrame3[0].Ztor;
-
-					play=true;
-					playIndex=0;
-					tipoAnim=3;
-
-					player1.saltando=true;
-					player1.cayendo=false;
 				}
 			}
 		}
