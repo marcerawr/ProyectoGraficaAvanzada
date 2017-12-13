@@ -1034,9 +1034,8 @@ int IniGL(GLvoid)										// Aqui se configuran los parametros iniciales de Ope
 
 	cargaConfiguracion();
 
-	sonidoF[0].cargaSonido("Audio/bgm.mp3", 1);
-	sonidoF[1].cargaSonido("Audio/sonido.mp3", 0);
-	sonidoF[2].cargaSonido("Audio/intro.mp3", 0);
+	sonidoF[0].cargaSonido("Audio/sbtitle.mp3", 1);
+	sonidoF[1].cargaSonido("Audio/sbnivel.mp3", 1);
 
 
 	timerEstados.iniciaTimer();
@@ -1079,10 +1078,14 @@ void controlEstados()
 {
 	if (infGame.estadoJuego == 1) //Logo estudio
 	{
-		if (timerEstados.TiempoActual() > 3000)
+		
+		if (timerEstados.TiempoActual() > 200)
 		{
 			infGame.tiempoEstado = 0;
 			infGame.estadoJuego = 5;
+			sonidoF[1].pausaSonido(true);
+			sonidoF[0].pausaSonido(false);
+			sonidoF[0].volumenSonido(0.5f);
 		}
 	}
 	else if (infGame.estadoJuego == 2) //Pantalla de carga
@@ -1094,8 +1097,6 @@ void controlEstados()
 		{
 			infGame.tiempoEstado = 0;
 			infGame.estadoJuego = 3;
-			sonidoF[2].volumenSonido(0.5f);
-			sonidoF[2].pausaSonido(false);
 		}
 	}
 	else if (infGame.estadoJuego == 3) //introduccion del juego
@@ -1108,10 +1109,9 @@ void controlEstados()
 	}
 	else if (infGame.estadoJuego == 4) //Título del juego
 	{
-		if (timerEstados.TiempoActual() > 31000)
+		if (timerEstados.TiempoActual() > 300)
 		{
 			infGame.tiempoEstado = 0;
-			infGame.estadoJuego = 5;
 			timerEstados.detieneTimer();
 		}
 	}
@@ -1665,7 +1665,7 @@ void dibujaTituloJuego()
 	glColor3f(1.0f, 1.0f, 1.0f);
 
 	if(color < 1.0f)
-		color+=0.001f;
+		color+=0.01f;
 	
 	if(infGame.estadoJuego == 5 && color >= 0.9f)
 	{
@@ -1673,24 +1673,24 @@ void dibujaTituloJuego()
 		glEnable(GL_ALPHA_TEST);
 
 		if(infGame.opcionMenuSelec == 0)
-			glColor3f(0.0f, 1.0f, 0.0f);
+			glColor3f(1.0f, 0.11f, 0.0f);
 		else
-			glColor3f(1.0f, 1.0f, 1.0f);
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.38f, infGame.glHeight*0.34f,"  Start");
+			glColor3f(0.0f, 0.0f, 0.0f);
+		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.40f, infGame.glHeight*0.17f,"Start");
 
 		if(infGame.opcionMenuSelec == 1)
-			glColor3f(0.0f, 1.0f, 0.0f);
+			glColor3f(1.0f, 0.11f, 0.0f);
 		else
-			glColor3f(1.0f, 1.0f, 1.0f);
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.38f, infGame.glHeight*0.28f,"Load game");
+			glColor3f(0.0f, 0.0f, 0.0f);
+		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.33f, infGame.glHeight*0.09f,"Load game");
 
 		if(infGame.opcionMenuSelec == 2)
-			glColor3f(0.0f, 1.0f, 0.0f);
+			glColor3f(1.0f, 0.11f, 0.0f);
 		else
-			glColor3f(1.0f, 1.0f, 1.0f);
-		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.38f, infGame.glHeight*0.22f," Options");
+			glColor3f(0.0f, 0.0f, 0.0f);
+		Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.33f, infGame.glHeight*0.02f," Options");
 		
-		glColor3f(1.0f, 1.0f, 1.0f);
+		glColor3f(0.76f, 0.86f, 0.93f);
 				
 		glDisable(GL_ALPHA_TEST);
 	}
@@ -1733,24 +1733,24 @@ void dibujaMenuOpciones()
 	glEnable(GL_ALPHA_TEST);
 
 	if(infGame.opMenuPrinc.opcionSelec == 0)
-		glColor3f(0.0f, 1.0f, 0.0f);
+		glColor3f(0.76f, 0.86f, 0.93f);
 	else
-		glColor3f(1.0f, 1.0f, 1.0f);
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.8f,"Num. Vidas:");
+		glColor3f(0.0f, 0.0f, 0.0f);
+	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.8f,"Lifes:");
 
 	if(infGame.opMenuPrinc.opcionSelec == 1)
-		glColor3f(0.0f, 1.0f, 0.0f);
+		glColor3f(0.76f, 0.86f, 0.93f);
 	else
-		glColor3f(1.0f, 1.0f, 1.0f);
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.6f,"Sonido:");
+		glColor3f(0.0f, 0.0f, 0.0f);
+	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.6f,"Music:");
 
 	if(infGame.opMenuPrinc.opcionSelec == 2)
-		glColor3f(0.0f, 1.0f, 0.0f);
+		glColor3f(0.76f, 0.86f, 0.93f);
 	else
-		glColor3f(1.0f, 1.0f, 1.0f);
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.4f,"Regresar");
+		glColor3f(0.0f, 0.0f, 0.0f);
+	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.15f, infGame.glHeight*0.4f,"Main Menu");
 
-	glColor3f(1.0f, 1.0f, 1.0f);
+	glColor3f(0.76f, 0.86f, 0.93f);
 	
 	//Número de vidas
 	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.6f, infGame.glHeight*0.8f,"%d", infGame.opMenuPrinc.numVidas);
@@ -1791,10 +1791,10 @@ void dibujaMenuPausa()
 	glColor3f(0.0f, 0.0f, 0.0f);
 
 	glBegin(GL_QUADS);
-		glVertex2f(infGame.glWidth*0.15f, infGame.glHeight*0.27f);
-		glVertex2f(infGame.glWidth*0.85f, infGame.glHeight*0.27f);
-		glVertex2f(infGame.glWidth*0.85f, infGame.glHeight*0.73f);
-		glVertex2f(infGame.glWidth*0.15f, infGame.glHeight*0.73f);
+		glVertex2f(infGame.glWidth*0.25f, infGame.glHeight*0.27f);
+		glVertex2f(infGame.glWidth*0.75f, infGame.glHeight*0.27f);
+		glVertex2f(infGame.glWidth*0.75f, infGame.glHeight*0.73f);
+		glVertex2f(infGame.glWidth*0.25f, infGame.glHeight*0.73f);
 	glEnd();
 	
 	glColor3f(1.0f, 1.0f, 1.0f);
@@ -1804,25 +1804,26 @@ void dibujaMenuPausa()
 	glEnable(GL_ALPHA_TEST);
 
 	if(infGame.opcionMenuPausa == 0)
-		glColor3f(0.0f, 1.0f, 0.0f);
+		glColor3f(0.00f, 0.00f, 0.93f);
 	else
 		glColor3f(1.0f, 1.0f, 1.0f);
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.26f, infGame.glHeight*0.61f,"Guargar juego");
+	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.38f, infGame.glHeight*0.58f,"Options");
 
 	if(infGame.opcionMenuPausa == 1)
-		glColor3f(0.0f, 1.0f, 0.0f);
+		glColor3f(0.00f, 0.00f, 0.93f);
 	else
 		glColor3f(1.0f, 1.0f, 1.0f);
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.25f, infGame.glHeight*0.46f,"Menu principal");
+	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.35f, infGame.glHeight*0.50f,"Main Menu");
 
 	if(infGame.opcionMenuPausa == 2)
-		glColor3f(0.0f, 1.0f, 0.0f);
+		glColor3f(0.00f, 0.00f, 0.93f);
 	else
 		glColor3f(1.0f, 1.0f, 1.0f);
-	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.4f, infGame.glHeight*0.31f,"Salir");
-
-	glColor3f(1.0f, 1.0f, 1.0f);
+	Font.glPrint((2.2f/640.0f)*infGame.glWidth, infGame.glWidth*0.35f, infGame.glHeight*0.42f,"Exit Game");
+	glColor3f(0.76f, 0.86f, 0.93f);
 		
+	Font.glPrint((2.2f / 640.0f)*infGame.glWidth*0.5f, infGame.glWidth*0.36f, infGame.glHeight*0.31f, "Exit Menu -> Esc");
+
 	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_TEXTURE_2D);
 
@@ -1987,10 +1988,13 @@ int RenderizaEscena(GLvoid)
 	glLoadIdentity();
 		
 	if (infGame.estadoJuego == 6)
+	{
+		sonidoF[0].pausaSonido(true);
+		sonidoF[1].volumenSonido(0.5f);
+		sonidoF[1].pausaSonido(false);
 		gluLookAt(0.0f, 80.0f, 44.0f, 0.0f, -125.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-		/*gluLookAt(player1.PosicionObj.x - 10.0f, player1.PosicionObj.y + 30.0f, player1.PosicionObj.z + 40.0f,
-			player1.PosicionObj.x, player1.PosicionObj.y + 18.0f, player1.PosicionObj.z,
-			0.0f, 1.0f, 0.0f); */
+
+	}
 
 					
 	ActualizaLuzParam();
@@ -2076,7 +2080,6 @@ void dibujaSegunEstado()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glLoadIdentity();
-
 		dibujaTituloJuego();
 	}
 	else if (infGame.estadoJuego == 6)
@@ -2091,8 +2094,6 @@ void dibujaSegunEstado()
 			{
 				if (tipoAnim == 1) //caminar
 					animacion(KeyFrame1, maxKF1, 15);
-				else if (tipoAnim == 2) //hurricane kick
-					animacion(KeyFrame2, maxKF2, 3);
 			}
 		}
 	}
@@ -2414,7 +2415,6 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instancia
 	// Finalización del programa
 	sonidoF[0].liberaSonido();
 	sonidoF[1].liberaSonido();
-	sonidoF[2].liberaSonido();
 	audioFunc.finalizaAudio();
 	DescargaTexturas();
 	DescargaModelos();
@@ -2485,12 +2485,6 @@ void cargaJuego()
 
 	fclose(F);
 
-	if(infGame.opMenuPrinc.sonido == 1)
-	{
-		sonidoF[2].pausaSonido(true);
-		sonidoF[0].volumenSonido(0.5f);
-		sonidoF[0].pausaSonido(false);
-	}
 }
 
 
@@ -2602,7 +2596,7 @@ void manejaEventosMain()
 					infGame.estadoJuego=6;
 					if(infGame.opMenuPrinc.sonido == 1)
 					{
-						sonidoF[2].pausaSonido(true);
+						sonidoF[1].pausaSonido(true);
 						sonidoF[0].volumenSonido(0.5f);
 						sonidoF[0].pausaSonido(false);
 					}
@@ -2706,7 +2700,7 @@ void manejaEventosMain()
 					if(infGame.opMenuPrinc.sonido == 0)
 					{
 						sonidoF[0].pausaSonido(true);
-						sonidoF[2].pausaSonido(true);
+						sonidoF[1].pausaSonido(true);
 					}
 				}
 			}
@@ -2955,12 +2949,17 @@ void manejaEventosMain()
 			{
 				if(estadoTeclaEnter == 0)
 				{
-					if(infGame.opcionMenuPausa == 0)
-						guardaJuego();
+					if (infGame.opcionMenuPausa == 0)
+					{
+						infGame.estadoJuego = 8;
+						menuOpcionesActivo = 0;
+						infGame.opMenuPrinc.opcionSelec = 0;
+					}
 					else if(infGame.opcionMenuPausa == 1)
 					{
 						infGame.estadoJuego=5;
 						menuPrincipalActivo=0;
+						infGame.pausa = 0;
 					}
 					else if(infGame.opcionMenuPausa == 2)
 						done=TRUE;						// ESC indica el termino del programa

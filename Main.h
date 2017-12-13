@@ -54,8 +54,8 @@ struct infoGame
 	int cargaArchivosCompleta;
 	int opcionMenuSelec;
 	int opcionMenuPausa;
+	int menupausaOpciones;
 	int pausa;
-
 	opcionesMenuPrincipal opMenuPrinc;
 };
 
