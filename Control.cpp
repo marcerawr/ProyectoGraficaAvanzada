@@ -98,6 +98,7 @@ void CControl::controlTeclado()
 		estadoTecla[5]=0;
 	}
 
+
 	//Enter
 	if(GetKeyState(VK_RETURN) & 0x80) //Si está presionada la tecla UP
 	{
@@ -108,6 +109,18 @@ void CControl::controlTeclado()
 	{
 		estadoTecla[6]=0;
 	}
+
+	//B para lanzar bombas
+	if (GetKeyState('B') & 0x80)
+	{
+		estadoTecla[7] = 1;
+	}
+
+	if (!(GetKeyState('B') & 0x80))
+	{
+		estadoTecla[7] = 0;
+	}
+
 }
 
 void CControl::controlJoystick()
