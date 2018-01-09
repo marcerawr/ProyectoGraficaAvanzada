@@ -1,5 +1,6 @@
 #include "Main.h"
 #include "3ds.h"
+#include "iostream"
 
 HDC			hDC=NULL;		// Dispositivo de contexto GDI
 HGLRC		hRC=NULL;		// Contexto de renderizado
@@ -92,6 +93,8 @@ CVector objSpline;
 
 cajaCol cajaPersonaje;
 cajaCol cajaEscenario[200];
+cajaCol cajaBomba;
+cajaCol cajaParticula;
 int numCajas=200;
 float altPiso=0.0f;
 float altMin=-30.0f;
@@ -161,7 +164,14 @@ CTimer timerBomba;		//Tiempo que dura la bomba antes de estallar
 CVector PosicionBomba;	//Posicion bomba
 bool existeBomba = false;
 
+bool colisionInicialBomba = false;
+
 modelo datosModelo;
+
+//Para las colisiones entre particulas y cofres
+int posPartX;
+int posPartY;
+int posPartZ;
 
 //Cambios para FPS
 //Buscar el comentario anterior para ver todos los cambios necesarios
@@ -257,6 +267,30 @@ void DescargaModelos()
 	
 }
 
+void InicializaParticulas()
+{
+	//Se inicializan los valores de la estructura de partículas
+	for (int loop = 0; loop<MAX_PARTICULAS; loop++)
+	{
+		particle[loop].life = 2.0f;
+		particle[loop].fade = 0.02;
+
+		//Posicion inicial
+		particle[loop].x = 0;
+		particle[loop].y = 0;
+		particle[loop].z = 0;
+
+		//"Gravedad" inicial
+		particle[loop].xg = 0;
+		particle[loop].yg = 0;
+		particle[loop].zg = 0;
+
+		particle[loop].xi = float((rand() % 50 + 1) - 25.0f) / 100.0f;  // Direccion y velocidad en X
+		particle[loop].yi = 0;  // Direccion y velocidad en Y
+		particle[loop].zi = 0;  // Direccion y velocidad en Z
+	}
+}
+
 void InicializaParametrosdeControl()
 {
 	//Esta función establece los parámetros como velocidad del objeto y distancia de la cámara así como la posición y dirección iniciales
@@ -267,7 +301,7 @@ void InicializaParametrosdeControl()
 	player1.dirX=0;
 	player1.dirZ=0;
 
-	player1.VelocidadObj=0.3f;
+	player1.VelocidadObj=0.1f;
 	player1.DistanciaCam=50.0f;
 	
 	player1.CamaraPosAlt=25.0f;	//Posición en y de la cámara (altura a la que se situa la cámara)
@@ -278,7 +312,7 @@ void InicializaParametrosdeControl()
 								//sin aplicarle ninguna transformación (hacia adonde está volteando). Se elige un ángulo tal que al aplicarle
 								//una rotación inicial con respecto al eje Y esté viendo hacia la misma dirección que la definida por AngDir
 		
-	player1.PosicionObj=CVector(-38.0f, 0.0f, 6.0f); //Esta es la posición inicial del objeto en la escena
+	player1.PosicionObj=CVector(-36.0f, 0.0f, 6.0f); //Esta es la posición inicial del objeto en la escena
 	player1.Direccion.x=(float)cos(player1.AngDir*PI/180.0f);
 	player1.Direccion.y=0.0f;
 	player1.Direccion.z=(float)sin(player1.AngDir*PI/180.0f);
@@ -731,7 +765,7 @@ void DatosAnimacion()
 void iniciaCajasdeColision()
 {
 	cajaPersonaje.pos = CVector(player1.PosicionObj.x, player1.PosicionObj.y + 3.0f, player1.PosicionObj.z);
-	cajaPersonaje.tamaño = CVector(4.5f, 4.5f, 4.0f);
+	cajaPersonaje.tamaño = CVector(4.0f, 6.0f, 4.0f);
 	cajaPersonaje.xMin = cajaPersonaje.pos.x - cajaPersonaje.tamaño.x*0.5f;
 	cajaPersonaje.xMax = cajaPersonaje.pos.x + cajaPersonaje.tamaño.x*0.5f;
 	cajaPersonaje.yMin = cajaPersonaje.pos.y - cajaPersonaje.tamaño.y*0.5f;
@@ -739,233 +773,234 @@ void iniciaCajasdeColision()
 	cajaPersonaje.zMin = cajaPersonaje.pos.z - cajaPersonaje.tamaño.z*0.5f;
 	cajaPersonaje.zMax = cajaPersonaje.pos.z + cajaPersonaje.tamaño.z*0.5f;
 
-	cajaEscenario[0].pos = CVector(-45.0f, 2.0f, 40.0f); //Pared izquierda límite
-	cajaEscenario[0].tamaño = CVector(7.0f, 4.0f, 80.0f);
 
-	cajaEscenario[1].pos = CVector(45.0f, 2.0f, 40.0f); //Pared derecha límite
-	cajaEscenario[1].tamaño = CVector(7.0f, 4.0f, 80.0f);
+	cajaEscenario[0].pos = CVector(-45.0f, 5.0f, 40.0f); //Pared izquierda límite
+	cajaEscenario[0].tamaño = CVector(7.0f, 8.0f, 80.0f);
 
-	cajaEscenario[2].pos = CVector(0.0f, 2.0f, 80.0f); //Pared inferior límite
-	cajaEscenario[2].tamaño = CVector(80.0f, 4.0f, 7.0f);
+	cajaEscenario[1].pos = CVector(45.0f, 5.0f, 40.0f); //Pared derecha límite
+	cajaEscenario[1].tamaño = CVector(7.0f, 8.0f, 80.0f);
 
-	cajaEscenario[3].pos = CVector(0.0f, 2.0f, -2.0f); //Pared superior límite
-	cajaEscenario[3].tamaño = CVector(80.0f, 4.0f, 7.0f);
+	cajaEscenario[2].pos = CVector(0.0f, 5.0f, 80.0f); //Pared inferior límite
+	cajaEscenario[2].tamaño = CVector(80.0f, 8.0f, 7.0f);
+
+	cajaEscenario[3].pos = CVector(0.0f, 5.0f, -2.0f); //Pared superior límite
+	cajaEscenario[3].tamaño = CVector(80.0f, 8.0f, 7.0f);
 
 	//CAJAS AMARILLAS DEL ESCENARIO
-	
-	cajaEscenario[4].pos = CVector(-32.0f, 2.0f, 13.0f); //Caja [1,1]
-	cajaEscenario[4].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[5].pos = CVector(-32.0f, 2.0f, 26.0f); //Caja [1,2]
-	cajaEscenario[5].tamaño = CVector(4.0f, 4.0f, 4.0f);
 
-	cajaEscenario[6].pos = CVector(-32.0f, 2.0f, 39.0f); //Caja [1,3]
-	cajaEscenario[6].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[4].pos = CVector(-32.0f, 5.0f, 13.0f); //Caja [1,1]
+	cajaEscenario[4].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[7].pos = CVector(-32.0f, 2.0f, 52.0f); //Caja [1,4]
-	cajaEscenario[7].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[8].pos = CVector(-18.0f, 2.0f, 13.0f); //Caja [2,1]
-	cajaEscenario[8].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[9].pos = CVector(-18.0f, 2.0f, 26.0f); //Caja [2,2]
-	cajaEscenario[9].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[5].pos = CVector(-32.0f, 5.0f, 26.0f); //Caja [1,2]
+	cajaEscenario[5].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[10].pos = CVector(-18.0f, 2.0f, 39.0f); //Caja [2,3]
-	cajaEscenario[10].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[6].pos = CVector(-32.0f, 5.0f, 39.0f); //Caja [1,3]
+	cajaEscenario[6].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[11].pos = CVector(-18.0f, 2.0f, 52.0f); //Caja [2,4]
-	cajaEscenario[11].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[7].pos = CVector(-32.0f, 5.0f, 52.0f); //Caja [1,4]
+	cajaEscenario[7].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[12].pos = CVector(-5.0f, 2.0f, 13.0f); //Caja [3,1]
-	cajaEscenario[12].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[13].pos = CVector(-5.0f, 2.0f, 26.0f); //Caja [3,2]
-	cajaEscenario[13].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[8].pos = CVector(-18.0f, 5.0f, 13.0f); //Caja [2,1]
+	cajaEscenario[8].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[14].pos = CVector(-5.0f, 2.0f, 39.0f); //Caja [3,3]
-	cajaEscenario[14].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[9].pos = CVector(-18.0f, 5.0f, 26.0f); //Caja [2,2]
+	cajaEscenario[9].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[15].pos = CVector(-5.0f, 2.0f, 52.0f); //Caja [3,4]
-	cajaEscenario[15].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[10].pos = CVector(-18.0f, 5.0f, 39.0f); //Caja [2,3]
+	cajaEscenario[10].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[16].pos = CVector(7.0f, 2.0f, 13.0f); //Caja [4,1]
-	cajaEscenario[16].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[11].pos = CVector(-18.0f, 5.0f, 52.0f); //Caja [2,4]
+	cajaEscenario[11].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[17].pos = CVector(7.0f, 2.0f, 26.0f); //Caja [4,2]
-	cajaEscenario[17].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[12].pos = CVector(-5.0f, 5.0f, 13.0f); //Caja [3,1]
+	cajaEscenario[12].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[18].pos = CVector(7.0f, 2.0f, 39.0f); //Caja [4,3]
-	cajaEscenario[18].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[13].pos = CVector(-5.0f, 5.0f, 26.0f); //Caja [3,2]
+	cajaEscenario[13].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[19].pos = CVector(7.0f, 2.0f, 52.0f); //Caja [4,4]
-	cajaEscenario[19].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[14].pos = CVector(-5.0f, 5.0f, 39.0f); //Caja [3,3]
+	cajaEscenario[14].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[20].pos = CVector(20.0f, 2.0f, 13.0f); //Caja [5,1]
-	cajaEscenario[20].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[15].pos = CVector(-5.0f, 5.0f, 52.0f); //Caja [3,4]
+	cajaEscenario[15].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[21].pos = CVector(20.0f, 2.0f, 26.0f); //Caja [5,2]
-	cajaEscenario[21].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[16].pos = CVector(7.0f, 5.0f, 13.0f); //Caja [4,1]
+	cajaEscenario[16].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[22].pos = CVector(20.0f, 2.0f, 39.0f); //Caja [5,3]
-	cajaEscenario[22].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[17].pos = CVector(7.0f, 5.0f, 26.0f); //Caja [4,2]
+	cajaEscenario[17].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[23].pos = CVector(20.0f, 2.0f, 52.0f); //Caja [5,4]
-	cajaEscenario[23].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[18].pos = CVector(7.0f, 5.0f, 39.0f); //Caja [4,3]
+	cajaEscenario[18].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[24].pos = CVector(33.0f, 2.0f, 13.0f); //Caja [6,1]
-	cajaEscenario[24].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[25].pos = CVector(33.0f, 2.0f, 26.0f); //Caja [6,2]
-	cajaEscenario[25].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[19].pos = CVector(7.0f, 5.0f, 52.0f); //Caja [4,4]
+	cajaEscenario[19].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[26].pos = CVector(33.0f, 2.0f, 39.0f); //Caja [6,3]
-	cajaEscenario[26].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[20].pos = CVector(20.0f, 5.0f, 13.0f); //Caja [5,1]
+	cajaEscenario[20].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[27].pos = CVector(33.0f, 2.0f, 52.0f); //Caja [6,4]
-	cajaEscenario[27].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[28].pos = CVector(-32.0f, 2.0f, 65.0f); //Caja [1,5]
-	cajaEscenario[28].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[21].pos = CVector(20.0f, 5.0f, 26.0f); //Caja [5,2]
+	cajaEscenario[21].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[29].pos = CVector(-18.0f, 2.0f, 65.0f); //Caja [2,5]
-	cajaEscenario[29].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[22].pos = CVector(20.0f, 5.0f, 39.0f); //Caja [5,3]
+	cajaEscenario[22].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[30].pos = CVector(-5.0f, 2.0f, 65.0f); //Caja [3,5]
-	cajaEscenario[30].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[23].pos = CVector(20.0f, 5.0f, 52.0f); //Caja [5,4]
+	cajaEscenario[23].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[31].pos = CVector(7.0f, 2.0f, 65.0f); //Caja [4,5]
-	cajaEscenario[31].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[32].pos = CVector(20.0f, 2.0f, 65.0f); //Caja [5,5]
-	cajaEscenario[32].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[24].pos = CVector(33.0f, 5.0f, 13.0f); //Caja [6,1]
+	cajaEscenario[24].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[33].pos = CVector(33.0f, 2.0f, 65.0f); //Caja [6,5]
-	cajaEscenario[33].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
+	cajaEscenario[25].pos = CVector(33.0f, 5.0f, 26.0f); //Caja [6,2]
+	cajaEscenario[25].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[26].pos = CVector(33.0f, 5.0f, 39.0f); //Caja [6,3]
+	cajaEscenario[26].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[27].pos = CVector(33.0f, 5.0f, 52.0f); //Caja [6,4]
+	cajaEscenario[27].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[28].pos = CVector(-32.0f, 5.0f, 65.0f); //Caja [1,5]
+	cajaEscenario[28].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[29].pos = CVector(-18.0f, 5.0f, 65.0f); //Caja [2,5]
+	cajaEscenario[29].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[30].pos = CVector(-5.0f, 5.0f, 65.0f); //Caja [3,5]
+	cajaEscenario[30].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[31].pos = CVector(7.0f, 5.0f, 65.0f); //Caja [4,5]
+	cajaEscenario[31].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[32].pos = CVector(20.0f, 5.0f, 65.0f); //Caja [5,5]
+	cajaEscenario[32].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[33].pos = CVector(33.0f, 5.0f, 65.0f); //Caja [6,5]
+	cajaEscenario[33].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
 	//CAJAS EXTRAS
 
-	cajaEscenario[34].pos = CVector(33.0f, 2.0f, 32.5f); //Caja [6 , 2.5]
-	cajaEscenario[34].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[34].pos = CVector(33.0f, 5.0f, 32.5f); //Caja [6 , 2.5]
+	cajaEscenario[34].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[35].pos = CVector(26.5f, 2.0f, 39.0f); //Caja [5.5 , 3]
-	cajaEscenario[35].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[36].pos = CVector(20.0f, 2.0f, 45.5f); //Caja [5 , 3.5]
-	cajaEscenario[36].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[37].pos = CVector(26.5f, 2.0f, 52.0f); //Caja [5.5 , 3]
-	cajaEscenario[37].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[38].pos = CVector(-5.0f, 2.0f, 58.5f); //Caja [3, 4.5]
-	cajaEscenario[38].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[35].pos = CVector(26.5f, 5.0f, 39.0f); //Caja [5.5 , 3]
+	cajaEscenario[35].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[39].pos = CVector(33.0f, 2.0f, 58.5f); //Caja [6 , 4.5]
-	cajaEscenario[39].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[36].pos = CVector(20.0f, 5.0f, 45.5f); //Caja [5 , 3.5]
+	cajaEscenario[36].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[37].pos = CVector(26.5f, 5.0f, 52.0f); //Caja [5.5 , 3]
+	cajaEscenario[37].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[38].pos = CVector(-5.0f, 5.0f, 58.5f); //Caja [3, 4.5]
+	cajaEscenario[38].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[39].pos = CVector(33.0f, 5.0f, 58.5f); //Caja [6 , 4.5]
+	cajaEscenario[39].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
 	// CAJAS ROJAS ESCENARIO
-	
-	cajaEscenario[40].pos = CVector(-26.0f, 2.0f, 7.0f); //1
-	cajaEscenario[40].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[41].pos = CVector(1.0f, 2.0f, 7.0f); //2
-	cajaEscenario[41].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[42].pos = CVector(-26.0f, 2.0f, 13.5f); //3
-	cajaEscenario[42].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[43].pos = CVector(-11.5f, 2.0f, 13.5f); // 4
-	cajaEscenario[43].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[44].pos = CVector(13.5f, 2.0f, 13.5f); // 5
-	cajaEscenario[44].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[45].pos = CVector(26.5f, 2.0f, 20.0f); //6
-	cajaEscenario[45].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[46].pos = CVector(33.0f, 2.0f, 20.0f); //7
-	cajaEscenario[46].tamaño = CVector(4.0f, 4.0f, 4.0f);
 
-	cajaEscenario[47].pos = CVector(1.0f, 2.0f, 26.0f); //8
-	cajaEscenario[47].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[40].pos = CVector(-26.0f, 5.0f, 7.0f); //1
+	cajaEscenario[40].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[48].pos = CVector(-38.5f, 2.0f, 32.5f); //9
-	cajaEscenario[48].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[41].pos = CVector(1.0f, 5.0f, 7.0f); //2
+	cajaEscenario[41].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[49].pos = CVector(-24.5f, 2.0f, 32.5f); //10
-	cajaEscenario[49].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[42].pos = CVector(-26.0f, 5.0f, 13.5f); //3
+	cajaEscenario[42].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[50].pos = CVector(-18.0f, 2.0f, 32.5f); //11
-	cajaEscenario[50].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[43].pos = CVector(-11.5f, 5.0f, 13.5f); // 4
+	cajaEscenario[43].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[51].pos = CVector(7.0f, 2.0f, 32.5f); //12
-	cajaEscenario[51].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[44].pos = CVector(13.5f, 5.0f, 13.5f); // 5
+	cajaEscenario[44].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[52].pos = CVector(13.5f, 2.0f, 32.5f); //13
-	cajaEscenario[52].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[45].pos = CVector(26.5f, 5.0f, 20.0f); //6
+	cajaEscenario[45].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[53].pos = CVector(20.0f, 2.0f, 32.5f); //14
-	cajaEscenario[53].tamaño = CVector(4.0f, 4.0f, 4.0f);
-	
-	cajaEscenario[54].pos = CVector(26.5f, 2.0f, 32.5f); //15
-	cajaEscenario[54].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[46].pos = CVector(33.0f, 5.0f, 20.0f); //7
+	cajaEscenario[46].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[55].pos = CVector(-11.5f, 2.0f, 39.0f); //16
-	cajaEscenario[55].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[47].pos = CVector(1.0f, 5.0f, 26.0f); //8
+	cajaEscenario[47].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[56].pos = CVector(13.5f, 2.0f, 39.0f); //17
-	cajaEscenario[56].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[48].pos = CVector(-38.5f, 5.0f, 32.5f); //9
+	cajaEscenario[48].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[57].pos = CVector(39.0f, 2.0f, 39.0f); //18
-	cajaEscenario[57].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[49].pos = CVector(-24.5f, 5.0f, 32.5f); //10
+	cajaEscenario[49].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[58].pos = CVector(-11.5f, 2.0f, 45.5f); //19
-	cajaEscenario[58].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[50].pos = CVector(-18.0f, 5.0f, 32.5f); //11
+	cajaEscenario[50].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[59].pos = CVector(0.5f, 2.0f, 45.5f); //20
-	cajaEscenario[59].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[51].pos = CVector(7.0f, 5.0f, 32.5f); //12
+	cajaEscenario[51].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[60].pos = CVector(-11.5f, 2.0f, 52.0f); //21
-	cajaEscenario[60].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[52].pos = CVector(13.5f, 5.0f, 32.5f); //13
+	cajaEscenario[52].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[61].pos = CVector(-32.0f, 2.0f, 58.5f); //22
-	cajaEscenario[61].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[53].pos = CVector(20.0f, 5.0f, 32.5f); //14
+	cajaEscenario[53].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[62].pos = CVector(-11.5f, 2.0f, 58.5f); //23
-	cajaEscenario[62].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[54].pos = CVector(26.5f, 5.0f, 32.5f); //15
+	cajaEscenario[54].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[63].pos = CVector(7.0f, 2.0f, 58.5f); //24
-	cajaEscenario[63].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[55].pos = CVector(-11.5f, 5.0f, 39.0f); //16
+	cajaEscenario[55].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[64].pos = CVector(13.5f, 2.0f, 58.5f); //25
-	cajaEscenario[64].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[56].pos = CVector(13.5f, 5.0f, 39.0f); //17
+	cajaEscenario[56].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[65].pos = CVector(26.5f, 2.0f, 58.5f); //26
-	cajaEscenario[65].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[57].pos = CVector(39.0f, 5.0f, 39.0f); //18
+	cajaEscenario[57].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[66].pos = CVector(-38.5f, 2.0f, 65.0f); //27
-	cajaEscenario[66].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[58].pos = CVector(-11.5f, 5.0f, 45.5f); //19
+	cajaEscenario[58].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[67].pos = CVector(-38.5f, 2.0f, 71.5f); //28
-	cajaEscenario[67].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[59].pos = CVector(0.5f, 5.0f, 45.5f); //20
+	cajaEscenario[59].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[68].pos = CVector(-24.5f, 2.0f, 71.5f); //29
-	cajaEscenario[68].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[60].pos = CVector(-11.5f, 5.0f, 52.0f); //21
+	cajaEscenario[60].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[69].pos = CVector(-18.0f, 2.0f, 71.5f); //30
-	cajaEscenario[69].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[61].pos = CVector(-32.0f, 5.0f, 58.5f); //22
+	cajaEscenario[61].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[70].pos = CVector(0.5f, 2.0f, 71.5f); //31
-	cajaEscenario[70].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[62].pos = CVector(-11.5f, 5.0f, 58.5f); //23
+	cajaEscenario[62].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[71].pos = CVector(13.5f, 2.0f, 71.5f); //32
-	cajaEscenario[71].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[63].pos = CVector(7.0f, 5.0f, 58.5f); //24
+	cajaEscenario[63].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[72].pos = CVector(33.0f, 2.0f, 71.5f); //33
-	cajaEscenario[72].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[64].pos = CVector(13.5f, 5.0f, 58.5f); //25
+	cajaEscenario[64].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
-	cajaEscenario[73].pos = CVector(39.0f, 2.0f, 65.0f); //34
-	cajaEscenario[73].tamaño = CVector(4.0f, 4.0f, 4.0f);
+	cajaEscenario[65].pos = CVector(26.5f, 5.0f, 58.5f); //26
+	cajaEscenario[65].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[66].pos = CVector(-38.5f, 5.0f, 65.0f); //27
+	cajaEscenario[66].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[67].pos = CVector(-38.5f, 5.0f, 71.5f); //28
+	cajaEscenario[67].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[68].pos = CVector(-24.5f, 5.0f, 71.5f); //29
+	cajaEscenario[68].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[69].pos = CVector(-18.0f, 5.0f, 71.5f); //30
+	cajaEscenario[69].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[70].pos = CVector(0.5f, 5.0f, 71.5f); //31
+	cajaEscenario[70].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[71].pos = CVector(13.5f, 5.0f, 71.5f); //32
+	cajaEscenario[71].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[72].pos = CVector(33.0f, 5.0f, 71.5f); //33
+	cajaEscenario[72].tamaño = CVector(4.0f, 8.0f, 4.0f);
+
+	cajaEscenario[73].pos = CVector(39.0f, 5.0f, 65.0f); //34
+	cajaEscenario[73].tamaño = CVector(4.0f, 8.0f, 4.0f);
 
 	for (int i = 0; i<200; i++)
 	{
@@ -1017,10 +1052,282 @@ void dibujaCajaColision(cajaCol *caja)
 	glEnable(GL_LIGHTING);
 }
 
+void iniCajaBomba()
+{
+	cajaBomba.pos = CVector(-100.0f,-100.0f,-100.0f);
+	cajaBomba.tamaño = CVector(6.0f, 8.0f, 6.0f);
+	cajaBomba.xMin = cajaBomba.pos.x - cajaBomba.tamaño.x*0.5f;
+	cajaBomba.xMax = cajaBomba.pos.x + cajaBomba.tamaño.x*0.5f;
+	cajaBomba.yMin = cajaBomba.pos.y - cajaBomba.tamaño.y*0.5f;
+	cajaBomba.yMax = cajaBomba.pos.y + cajaBomba.tamaño.y*0.5f;
+	cajaBomba.zMin = cajaBomba.pos.z - cajaBomba.tamaño.z*0.5f;
+	cajaBomba.zMax = cajaBomba.pos.z + cajaBomba.tamaño.z*0.5f;
+}
+
+void actualizaCajaBomba()
+{
+	cajaBomba.pos = CVector(PosicionBomba.x, PosicionBomba.y, PosicionBomba.z);
+	cajaBomba.xMin = cajaBomba.pos.x - cajaBomba.tamaño.x*0.5f;
+	cajaBomba.xMax = cajaBomba.pos.x + cajaBomba.tamaño.x*0.5f;
+	cajaBomba.yMin = cajaBomba.pos.y - cajaBomba.tamaño.y*0.5f;
+	cajaBomba.yMax = cajaBomba.pos.y + cajaBomba.tamaño.y*0.5f;
+	cajaBomba.zMin = cajaBomba.pos.z - cajaBomba.tamaño.z*0.5f;
+	cajaBomba.zMax = cajaBomba.pos.z + cajaBomba.tamaño.z*0.5f;
+}
+
+void iniCajaParticula()
+{
+	cajaParticula.pos = CVector(-100.0f, -100.0f, -100.0f);
+	cajaParticula.tamaño = CVector(24.0f, 8.0f, 24.0f);
+	cajaParticula.xMin = cajaParticula.pos.x - cajaParticula.tamaño.x*0.5f;
+	cajaParticula.xMax = cajaParticula.pos.x + cajaParticula.tamaño.x*0.5f;
+	cajaParticula.yMin = cajaParticula.pos.y - cajaParticula.tamaño.y*0.5f;
+	cajaParticula.yMax = cajaParticula.pos.y + cajaParticula.tamaño.y*0.5f;
+	cajaParticula.zMin = cajaParticula.pos.z - cajaParticula.tamaño.z*0.5f;
+	cajaParticula.zMax = cajaParticula.pos.z + cajaParticula.tamaño.z*0.5f;
+}
+
+void actualizaCajaParticula()
+
+{	cajaParticula.pos = CVector(PosicionBomba.x, PosicionBomba.y, PosicionBomba.z);
+	cajaParticula.xMin = cajaParticula.pos.x - cajaParticula.tamaño.x*0.5f;
+	cajaParticula.xMax = cajaParticula.pos.x + cajaParticula.tamaño.x*0.5f;
+	cajaParticula.yMin = cajaParticula.pos.y - cajaParticula.tamaño.y*0.5f;
+	cajaParticula.yMax = cajaParticula.pos.y + cajaParticula.tamaño.y*0.5f;
+	cajaParticula.zMin = cajaParticula.pos.z - cajaParticula.tamaño.z*0.5f;
+	cajaParticula.zMax = cajaParticula.pos.z + cajaParticula.tamaño.z*0.5f;
+}
+
+bool colisionBomba(int dir)
+{
+	bool col = false;
+	CVector pSig;
+	CVector A, B, C, D, E, F, G, H;
+
+	if (dir == 1) //x+
+	{
+		pSig.x = player1.PosicionObj.x + player1.VelocidadObj;
+		pSig.y = player1.PosicionObj.y;
+		pSig.z = player1.PosicionObj.z;
+	}
+	else if (dir == 2) //x-
+	{
+		pSig.x = player1.PosicionObj.x - player1.VelocidadObj;
+		pSig.y = player1.PosicionObj.y;
+		pSig.z = player1.PosicionObj.z;
+	}
+	else if (dir == 3) //z+
+	{
+		pSig.x = player1.PosicionObj.x;
+		pSig.y = player1.PosicionObj.y;
+		pSig.z = player1.PosicionObj.z + player1.VelocidadObj;
+	}
+	else if (dir == 4) //z-
+	{
+		pSig.x = player1.PosicionObj.x;
+		pSig.y = player1.PosicionObj.y;
+		pSig.z = player1.PosicionObj.z - player1.VelocidadObj;
+	}
+	else if (dir == 5) //y+
+	{
+		pSig.x = player1.PosicionObj.x;
+		pSig.y = player1.PosicionObj.y + player1.VelocidadObj;
+		pSig.z = player1.PosicionObj.z;
+	}
+	else if (dir == 6) //y-
+	{
+		pSig.x = player1.PosicionObj.x;
+		pSig.y = player1.PosicionObj.y - player1.VelocidadObj;
+		pSig.z = player1.PosicionObj.z;
+	}
+
+	cajaPersonaje.pos = CVector(pSig.x, pSig.y + 3.0f, pSig.z);
+	cajaPersonaje.xMin = cajaPersonaje.pos.x - cajaPersonaje.tamaño.x*0.5f;
+	cajaPersonaje.xMax = cajaPersonaje.pos.x + cajaPersonaje.tamaño.x*0.5f;
+	cajaPersonaje.yMin = cajaPersonaje.pos.y - cajaPersonaje.tamaño.y*0.5f;
+	cajaPersonaje.yMax = cajaPersonaje.pos.y + cajaPersonaje.tamaño.y*0.5f;
+	cajaPersonaje.zMin = cajaPersonaje.pos.z - cajaPersonaje.tamaño.z*0.5f;
+	cajaPersonaje.zMax = cajaPersonaje.pos.z + cajaPersonaje.tamaño.z*0.5f;
+
+	//Inf-izq-front
+	A.x = cajaPersonaje.xMin;
+	A.y = cajaPersonaje.yMin;
+	A.z = cajaPersonaje.zMax;
+
+	//Inf-der-front
+	B.x = cajaPersonaje.xMax;
+	B.y = cajaPersonaje.yMin;
+	B.z = cajaPersonaje.zMax;
+
+	//Sup-der-front
+	C.x = cajaPersonaje.xMax;
+	C.y = cajaPersonaje.yMax;
+	C.z = cajaPersonaje.zMax;
+
+	//Sup-izq-front
+	D.x = cajaPersonaje.xMin;
+	D.y = cajaPersonaje.yMax;
+	D.z = cajaPersonaje.zMax;
+
+	//Inf-izq-tras
+	E.x = cajaPersonaje.xMin;
+	E.y = cajaPersonaje.yMin;
+	E.z = cajaPersonaje.zMin;
+
+	//Inf-der-tras
+	F.x = cajaPersonaje.xMax;
+	F.y = cajaPersonaje.yMin;
+	F.z = cajaPersonaje.zMin;
+
+	//Sup-der-tras
+	G.x = cajaPersonaje.xMax;
+	G.y = cajaPersonaje.yMax;
+	G.z = cajaPersonaje.zMin;
+
+	//Sup-izq-tras
+	H.x = cajaPersonaje.xMin;
+	H.y = cajaPersonaje.yMax;
+	H.z = cajaPersonaje.zMin;
+
+	if ((A.x > cajaBomba.xMin && A.x < cajaBomba.xMax && A.y > cajaBomba.yMin && A.y < cajaBomba.yMax && A.z > cajaBomba.zMin && A.z < cajaBomba.zMax)
+		|| (B.x > cajaBomba.xMin && B.x < cajaBomba.xMax && B.y > cajaBomba.yMin && B.y < cajaBomba.yMax && B.z > cajaBomba.zMin && B.z < cajaBomba.zMax)
+		|| (C.x > cajaBomba.xMin && C.x < cajaBomba.xMax && C.y > cajaBomba.yMin && C.y < cajaBomba.yMax && C.z > cajaBomba.zMin && C.z < cajaBomba.zMax)
+		|| (D.x > cajaBomba.xMin && D.x < cajaBomba.xMax && D.y > cajaBomba.yMin && D.y < cajaBomba.yMax && D.z > cajaBomba.zMin && D.z < cajaBomba.zMax)
+		|| (E.x > cajaBomba.xMin && E.x < cajaBomba.xMax && E.y > cajaBomba.yMin && E.y < cajaBomba.yMax && E.z > cajaBomba.zMin && E.z < cajaBomba.zMax)
+		|| (F.x > cajaBomba.xMin && F.x < cajaBomba.xMax && F.y > cajaBomba.yMin && F.y < cajaBomba.yMax && F.z > cajaBomba.zMin && F.z < cajaBomba.zMax)
+		|| (G.x > cajaBomba.xMin && G.x < cajaBomba.xMax && G.y > cajaBomba.yMin && G.y < cajaBomba.yMax && G.z > cajaBomba.zMin && G.z < cajaBomba.zMax)
+		|| (H.x > cajaBomba.xMin && H.x < cajaBomba.xMax && H.y > cajaBomba.yMin && H.y < cajaBomba.yMax && H.z > cajaBomba.zMin && H.z < cajaBomba.zMax))
+	{
+		col = true;
+
+		if (dir == 1) //x+
+			player1.PosicionObj.x = cajaBomba.xMin - cajaBomba.tamaño.x*0.5f;
+		else if (dir == 2) //x-
+			player1.PosicionObj.x = cajaBomba.xMax + cajaPersonaje.tamaño.x*0.5f;
+		else if (dir == 3) //z+
+			player1.PosicionObj.z = cajaBomba.zMin - cajaPersonaje.tamaño.z*0.5f;
+		else if (dir == 4) //z-
+			player1.PosicionObj.z = cajaBomba.zMax + cajaPersonaje.tamaño.z*0.5f;
+		else if (dir == 5) //y+
+			player1.PosicionObj.y = cajaBomba.yMin - cajaPersonaje.tamaño.y*0.5f - 3.0f;
+		else if (dir == 6) //y-
+			player1.PosicionObj.y = cajaBomba.yMax;
+
+	}
+
+	return col;
+}
+
+bool ColParticulas(int dir)
+{
+	bool col = false;
+	CVector pSig;
+	CVector A, B, C, D, E, F, G, H;
+
+	for (int i = 40; i<numCajas; i++)
+	{
+		if (dir == 1) //x+
+		{
+			pSig.x = player1.PosicionObj.x + player1.VelocidadObj;
+			pSig.y = player1.PosicionObj.y;
+			pSig.z = player1.PosicionObj.z;
+		}
+		else if (dir == 2) //x-
+		{
+			pSig.x = player1.PosicionObj.x - player1.VelocidadObj;
+			pSig.y = player1.PosicionObj.y;
+			pSig.z = player1.PosicionObj.z;
+		}
+		else if (dir == 3) //z+
+		{
+			pSig.x = player1.PosicionObj.x;
+			pSig.y = player1.PosicionObj.y;
+			pSig.z = player1.PosicionObj.z + player1.VelocidadObj;
+		}
+		else if (dir == 4) //z-
+		{
+			pSig.x = player1.PosicionObj.x;
+			pSig.y = player1.PosicionObj.y;
+			pSig.z = player1.PosicionObj.z - player1.VelocidadObj;
+		}
+
+
+		cajaEscenario[i].pos = CVector(pSig.x, pSig.y + 3.0f, pSig.z);
+		cajaEscenario[i].xMin = cajaEscenario[i].pos.x - cajaEscenario[i].tamaño.x*0.5f;
+		cajaEscenario[i].xMax = cajaEscenario[i].pos.x + cajaEscenario[i].tamaño.x*0.5f;
+		cajaEscenario[i].zMin = cajaEscenario[i].pos.z - cajaEscenario[i].tamaño.z*0.5f;
+		cajaEscenario[i].zMax = cajaEscenario[i].pos.z + cajaEscenario[i].tamaño.z*0.5f;
+
+		//Inf-izq-front
+		A.x = cajaEscenario[i].xMin;
+		A.y = cajaEscenario[i].yMin;
+		A.z = cajaEscenario[i].zMax;
+
+		//Inf-der-front
+		B.x = cajaEscenario[i].xMax;
+		B.y = cajaEscenario[i].yMin;
+		B.z = cajaEscenario[i].zMax;
+
+		//Sup-der-front
+		C.x = cajaEscenario[i].xMax;
+		C.y = cajaEscenario[i].yMax;
+		C.z = cajaEscenario[i].zMax;
+
+		//Sup-izq-front
+		D.x = cajaEscenario[i].xMin;
+		D.y = cajaEscenario[i].yMax;
+		D.z = cajaEscenario[i].zMax;
+
+		//Inf-izq-tras
+		E.x = cajaEscenario[i].xMin;
+		E.y = cajaEscenario[i].yMin;
+		E.z = cajaEscenario[i].zMin;
+
+		//Inf-der-tras
+		F.x = cajaEscenario[i].xMax;
+		F.y = cajaEscenario[i].yMin;
+		F.z = cajaEscenario[i].zMin;
+
+		//Sup-der-tras
+		G.x = cajaEscenario[i].xMax;
+		G.y = cajaEscenario[i].yMax;
+		G.z = cajaEscenario[i].zMin;
+
+		//Sup-izq-tras
+		H.x = cajaEscenario[i].xMin;
+		H.y = cajaEscenario[i].yMax;
+		H.z = cajaEscenario[i].zMin;
+
+		if ((A.x > cajaParticula.xMin && A.x < cajaParticula.xMax && A.y > cajaParticula.yMin && A.y < cajaParticula.yMax && A.z > cajaParticula.zMin && A.z < cajaParticula.zMax)
+			|| (B.x > cajaParticula.xMin && B.x < cajaParticula.xMax && B.y > cajaParticula.yMin && B.y < cajaParticula.yMax && B.z > cajaParticula.zMin && B.z < cajaParticula.zMax)
+			|| (C.x > cajaParticula.xMin && C.x < cajaParticula.xMax && C.y > cajaParticula.yMin && C.y < cajaParticula.yMax && C.z > cajaParticula.zMin && C.z < cajaParticula.zMax)
+			|| (D.x > cajaParticula.xMin && D.x < cajaParticula.xMax && D.y > cajaParticula.yMin && D.y < cajaParticula.yMax && D.z > cajaParticula.zMin && D.z < cajaParticula.zMax)
+			|| (E.x > cajaParticula.xMin && E.x < cajaParticula.xMax && E.y > cajaParticula.yMin && E.y < cajaParticula.yMax && E.z > cajaParticula.zMin && E.z < cajaParticula.zMax)
+			|| (F.x > cajaParticula.xMin && F.x < cajaParticula.xMax && F.y > cajaParticula.yMin && F.y < cajaParticula.yMax && F.z > cajaParticula.zMin && F.z < cajaParticula.zMax)
+			|| (G.x > cajaParticula.xMin && G.x < cajaParticula.xMax && G.y > cajaParticula.yMin && G.y < cajaParticula.yMax && G.z > cajaParticula.zMin && G.z < cajaParticula.zMax)
+			|| (H.x > cajaParticula.xMin && H.x < cajaParticula.xMax && H.y > cajaParticula.yMin && H.y < cajaParticula.yMax && H.z > cajaParticula.zMin && H.z < cajaParticula.zMax))
+		{
+			col = true;
+
+			if (dir == 1) //x+
+				cajaEscenario[i].pos = CVector(0.0f, -25.0f, 0.0f);
+			else if (dir == 2) //x-
+				cajaEscenario[i].pos = CVector(0.0f, -25.0f, 0.0f);
+			else if (dir == 3) //z+
+				cajaEscenario[i].pos = CVector(0.0f, -25.0f, 0.0f);
+			else if (dir == 4) //z-
+				cajaEscenario[i].pos = CVector(0.0f, -25.0f, 0.0f);
+
+
+			break;
+		}
+	}
+
+	return col;
+}
 
 bool colisionCajas(int dir)
 {
-
 	bool col = false;
 	CVector pSig;
 	CVector A, B, C, D, E, F, G, H;
@@ -1064,20 +1371,13 @@ bool colisionCajas(int dir)
 			pSig.z = player1.PosicionObj.z;
 		}
 
-// ______________________________________________________________________//
-//|						                    LA MALDITA RESTA													  |//
-//|@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|//		
-		cajaPersonaje.pos = CVector(pSig.x, pSig.y, pSig.z - 0.5f);
-//|@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|//
-//|						                    LA MALDITA RESTA													  |//
-// ______________________________________________________________________//
-		
+		cajaPersonaje.pos = CVector(pSig.x, pSig.y + 3.0f, pSig.z);
 		cajaPersonaje.xMin = cajaPersonaje.pos.x - cajaPersonaje.tamaño.x*0.5f;
 		cajaPersonaje.xMax = cajaPersonaje.pos.x + cajaPersonaje.tamaño.x*0.5f;
 		cajaPersonaje.yMin = cajaPersonaje.pos.y - cajaPersonaje.tamaño.y*0.5f;
 		cajaPersonaje.yMax = cajaPersonaje.pos.y + cajaPersonaje.tamaño.y*0.5f;
 		cajaPersonaje.zMin = cajaPersonaje.pos.z - cajaPersonaje.tamaño.z*0.5f;
-		cajaPersonaje.zMax = cajaPersonaje.pos.z + cajaPersonaje.tamaño.z*0.5;
+		cajaPersonaje.zMax = cajaPersonaje.pos.z + cajaPersonaje.tamaño.z*0.5f;
 
 		//Inf-izq-front
 		A.x = cajaPersonaje.xMin;
@@ -1119,9 +1419,9 @@ bool colisionCajas(int dir)
 		H.y = cajaPersonaje.yMax;
 		H.z = cajaPersonaje.zMin;
 
-		if ((A.x > cajaEscenario[i].xMin && A.x < cajaEscenario[i].xMax && A.y > cajaEscenario[i].yMin && A.y < cajaEscenario[i].yMax && A.z < cajaEscenario[i].zMin && A.z > cajaEscenario[i].zMax)
+		if ((A.x > cajaEscenario[i].xMin && A.x < cajaEscenario[i].xMax && A.y > cajaEscenario[i].yMin && A.y < cajaEscenario[i].yMax && A.z > cajaEscenario[i].zMin && A.z < cajaEscenario[i].zMax)
 			|| (B.x > cajaEscenario[i].xMin && B.x < cajaEscenario[i].xMax && B.y > cajaEscenario[i].yMin && B.y < cajaEscenario[i].yMax && B.z > cajaEscenario[i].zMin && B.z < cajaEscenario[i].zMax)
-			|| (C.x > cajaEscenario[i].xMin && C.x < cajaEscenario[i].xMax && C.y > cajaEscenario[i].yMin && C.y < cajaEscenario[i].yMax	&& C.z > cajaEscenario[i].zMin && C.z < cajaEscenario[i].zMax)
+			|| (C.x > cajaEscenario[i].xMin && C.x < cajaEscenario[i].xMax && C.y > cajaEscenario[i].yMin && C.y < cajaEscenario[i].yMax && C.z > cajaEscenario[i].zMin && C.z < cajaEscenario[i].zMax)
 			|| (D.x > cajaEscenario[i].xMin && D.x < cajaEscenario[i].xMax && D.y > cajaEscenario[i].yMin && D.y < cajaEscenario[i].yMax && D.z > cajaEscenario[i].zMin && D.z < cajaEscenario[i].zMax)
 			|| (E.x > cajaEscenario[i].xMin && E.x < cajaEscenario[i].xMax && E.y > cajaEscenario[i].yMin && E.y < cajaEscenario[i].yMax && E.z > cajaEscenario[i].zMin && E.z < cajaEscenario[i].zMax)
 			|| (F.x > cajaEscenario[i].xMin && F.x < cajaEscenario[i].xMax && F.y > cajaEscenario[i].yMin && F.y < cajaEscenario[i].yMax && F.z > cajaEscenario[i].zMin && F.z < cajaEscenario[i].zMax)
@@ -1187,7 +1487,7 @@ void actualizaMovPersonaje()
 			else
 				player1.caminando = false;
 		}
-		else if (player1.dirX == 2)
+		else if (player1.dirX == 2 )
 		{
 			if (!colisionCajas(2))
 				player1.PosicionObj.x -= player1.VelocidadObj;
@@ -1209,7 +1509,75 @@ void actualizaMovPersonaje()
 			else
 				player1.caminando = false;
 		}
+
+		//////
+		
 	}		
+}
+
+void actualizaMovPersonaje2()
+{
+	static int tiempoColPersonaje = 0;
+	static int tiempoColEnemigo = 0;
+
+	actualizaCajaColPersonaje();
+
+	if (esferaPersonaje.estado == 1)
+	{
+		if (tiempoColPersonaje < 20)
+			tiempoColPersonaje++;
+		else
+		{
+			tiempoColPersonaje = 0;
+			esferaPersonaje.estado = 0;
+		}
+	}
+
+	if (esferaEnemigo.estado == 1)
+	{
+		if (tiempoColEnemigo < 20)
+			tiempoColEnemigo++;
+		else
+		{
+			tiempoColEnemigo = 0;
+			esferaEnemigo.estado = 0;
+		}
+	}
+	if (player1.caminando == true)
+	{
+		if (player1.dirX == 1)
+		{
+			if (!colisionBomba(1))
+				player1.PosicionObj.x += player1.VelocidadObj;
+			else
+				player1.caminando = false;
+		}
+		else if (player1.dirX == 2)
+		{
+			if (!colisionBomba(2))
+				player1.PosicionObj.x -= player1.VelocidadObj;
+			else
+				player1.caminando = false;
+		}
+
+		if (player1.dirZ == 1)
+		{
+			if (!colisionBomba(3))
+				player1.PosicionObj.z += player1.VelocidadObj;
+			else
+				player1.caminando = false;
+		}
+		else if (player1.dirZ == 2)
+		{
+			if (!colisionBomba(4))
+				player1.PosicionObj.z -= player1.VelocidadObj;
+			else
+				player1.caminando = false;
+		}
+
+		//////
+
+	}
 }
 
 
@@ -1243,6 +1611,8 @@ int IniGL(GLvoid)										// Aqui se configuran los parametros iniciales de Ope
 
 	CargaModelos();
 	iniciaCajasdeColision(); //Llamada a caja de colision
+	iniCajaBomba();
+	iniCajaParticula();
 	IniVarsPlayer();
 	InicializaParametrosdeControl();
 	InicializaCamara();
@@ -1276,39 +1646,9 @@ int IniGL(GLvoid)										// Aqui se configuran los parametros iniciales de Ope
 
 
 	timerEstados.iniciaTimer();
-	//InicializaParticulas();
+	InicializaParticulas();
 
 	return TRUE;										
-}
-
-
-void obtieneAltPiso()
-{
-	float izq, der, ade, atr;
-
-	for(int i=0; i<numCajas; i++)
-	{
-		izq=cajaPersonaje.xMin;
-		der=cajaPersonaje.xMax;
-		ade=cajaPersonaje.zMax;
-		atr=cajaPersonaje.zMin;
-		
-		if(cajaPersonaje.yMin >= cajaEscenario[i].yMax
-			&& ((izq > cajaEscenario[i].xMin && izq < cajaEscenario[i].xMax)
-			|| (der > cajaEscenario[i].xMin && der < cajaEscenario[i].xMax))
-			&& ((ade > cajaEscenario[i].zMin && ade < cajaEscenario[i].zMax)
-			|| (atr > cajaEscenario[i].zMin && atr < cajaEscenario[i].zMax)))
-		{
-			//Comprueba que sea la más cercana en y (de otra forma podría tomar la altura de la caja más baja si se encuentra una caja debajo de otra)
-			if(fabs(cajaPersonaje.pos.y-cajaEscenario[i].pos.y) <= cajaPersonaje.tamaño.y*0.5f+cajaEscenario[i].tamaño.y*0.5f+player1.VelocidadObj)
-			{
-				altPiso=cajaEscenario[i].yMax;
-				break;
-			}
-		}
-		else
-			altPiso=altMin;
-	}
 }
 
 void controlEstados()
@@ -1519,858 +1859,858 @@ void DibujaCaja(int tipo)
 }
 
 
-void DibujaEscenarioBase()
-{
-	glEnable(GL_TEXTURE_2D);
-
-	//Plano del piso
-	glBindTexture(GL_TEXTURE_2D, textura[4].texID);
-	glBegin(GL_QUADS);
-	glNormal3f(0.0f, 1.0f, 0.0f);
-	glTexCoord2f(0.1f, 0.0f); glVertex3f(-42.5f, 0.0f, 78.0f);
-	glTexCoord2f(5.0f, 0.0f); glVertex3f(42.5f, 0.0f, 78.0f);
-	glTexCoord2f(5.0f, 5.0f); glVertex3f(42.5f, 0.0f, 2.0f);
-	glTexCoord2f(0.1f, 5.0f); glVertex3f(-42.5f, 0.0f, 2.0f);
-	glEnd();
-
-	//Cajas limite escenario izquierda
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 5.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 10.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 15.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 20.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 25.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 25.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 30.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 35.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 40.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 45.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 50.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 55.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 60.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 65.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 70.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-45.5f, 2.5f, 75.0f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	//Cajas limite escenario derecha
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 5.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 10.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 15.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 20.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 25.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 25.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 30.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 35.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 40.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 45.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 50.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 55.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 60.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 65.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 70.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(45.5f, 2.5f, 75.0f);
-	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(3);
-	glPopMatrix();
-
-	//Límite del escenario inferior
-
-	glPushMatrix();
-	glTranslatef(42.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(37.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(32.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(27.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(22.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(17.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(12.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(7.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(2.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-2.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-7.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-12.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-17.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-22.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-27.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-32.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-37.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-42.5f, 7.5f, 78.0f);
-	glScalef(0.7, 0.0, 0.7);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(4);
-	glPopMatrix();
-	
-	// ------------------- CAJAS AMARILLAS -------------------//
-
-	// CAJAS [1,X]
-	glPushMatrix();
-	glTranslatef(-32.0f, 2.5f, 13.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-32.0f, 2.5f, 26.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-32.0f, 2.5f, 39.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-32.0f, 2.5f, 52.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	// CAJAS [2,X]
-	glPushMatrix();
-	glTranslatef(-18.0f, 2.5f, 13.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-18.0f, 2.5f, 26.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-18.0f, 2.5f, 39.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-18.0f, 2.5f, 52.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	// CAJAS [3,X]
-	glPushMatrix();
-	glTranslatef(-5.0f, 2.5f, 13.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-5.0f, 2.5f, 26.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-5.0f, 2.5f, 39.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-5.0f, 2.5f, 52.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	// CAJAS [4,X]
-	glPushMatrix();
-	glTranslatef(7.0f, 2.5f, 13.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(7.0f, 2.5f, 26.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(7.0f, 2.5f, 39.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(7.0f, 2.5f, 52.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	// CAJAS [5,X]
-	glPushMatrix();
-	glTranslatef(20.0f, 2.5f, 13.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(20.0f, 2.5f, 26.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(20.0f, 2.5f, 39.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(20.0f, 2.5f, 52.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	// CAJAS [6,X]
-	glPushMatrix();
-	glTranslatef(33.0f, 2.5f, 13.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(33.0f, 2.5f, 26.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(33.0f, 2.5f, 39.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(33.0f, 2.5f, 52.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-	
-	// CAJAS [X , 5]
-
-	glPushMatrix();
-	glTranslatef(-32.0f, 2.5f, 65.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-18.0f, 2.5f, 65.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-5.0f, 2.5f, 65.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(7.0f, 2.5f, 65.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(20.0f, 2.5f, 65.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(33.0f, 2.5f, 65.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	// CAJAS EXTRAS
-
-	glPushMatrix();
-	glTranslatef(33.0f, 2.5f, 32.5f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	//Caja [5.5 , 3]
-
-	glPushMatrix();
-	glTranslatef(26.5f, 2.5f, 39.0f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	 //Caja [5 , 3.5]
-	
-	glPushMatrix();
-	glTranslatef(20.0f, 2.5f, 45.5f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	//Caja [5.5 , 3]
-	
-	glPushMatrix();
-	glTranslatef(26.5f, 2.5f, 52.5f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	//Caja [3, 4.5]
-	
-	glPushMatrix();
-	glTranslatef(-5.0f, 2.5f, 58.5f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	//Caja [6 , 4.5]
-
-	glPushMatrix();
-	glTranslatef(33.0f, 2.5f, 58.5f);
-	glScalef(0.7, 0.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(1);
-	glPopMatrix();
-
-	
-	// CAJAS ROJAS
-	
-	glPushMatrix();		//1
-	glTranslatef(-26.0f, 2.0f, 7.0f);
-	glScalef(0.7, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//2
-	glTranslatef(1.0f, 2.0f, 7.0f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//3
-	glTranslatef(-26.0f, 2.0f, 13.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//4
-	glTranslatef(-11.5f, 2.0f, 13.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//5
-	glTranslatef(13.5f, 2.0f, 13.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-	
-	glPushMatrix();		//6
-	glTranslatef(26.5f, 2.0f, 20.0f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-	
-	glPushMatrix();		//7
-	glTranslatef(33.0f, 2.0f, 20.0f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//8
-	glTranslatef(1.0f, 2.0f, 26.0f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//9
-	glTranslatef(-38.5f, 2.0f, 32.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//10
-	glTranslatef(-24.5f, 2.0f, 32.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//11
-	glTranslatef(-18.0f, 2.0f, 32.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-	
-	glPushMatrix();		//12
-	glTranslatef(7.0f, 2.0f, 32.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-	
-	glPushMatrix();		//13
-	glTranslatef(13.5f, 2.0f, 32.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-	
-	glPushMatrix();		//14
-	glTranslatef(20.0f, 2.0f, 32.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-	
-	glPushMatrix();		//15
-	glTranslatef(26.5f, 2.0f, 32.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-	
-	glPushMatrix();		//16
-	glTranslatef(-11.5f, 2.0f, 39.0f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//17
-	glTranslatef(13.5f, 2.0f, 39.0f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-	
-	glPushMatrix();		//18
-	glTranslatef(39.0f, 2.0f, 39.0f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-	
-	glPushMatrix();		//19
-	glTranslatef(-11.5f, 2.0f, 45.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//20
-	glTranslatef(0.5f, 2.0f, 45.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-	
-	glPushMatrix();		//21
-	glTranslatef(-11.5f, 2.0f, 52.0f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//22
-	glTranslatef(-32.0f, 2.0f, 58.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//23
-	glTranslatef(-11.5f, 2.0f, 58.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//24
-	glTranslatef(7.0f, 2.0f, 58.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//25
-	glTranslatef(13.5f, 2.0f, 58.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//26
-	glTranslatef(26.5f, 2.0f, 58.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//27
-	glTranslatef(-38.5f, 2.0f, 65.0f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//28
-	glTranslatef(-38.5f, 2.0f, 71.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//29
-	glTranslatef(-24.5f, 2.0f, 71.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//30
-	glTranslatef(-18.0f, 2.0f, 71.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//31
-	glTranslatef(0.5f, 2.0f, 71.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//32
-	glTranslatef(13.5f, 2.0f, 71.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//33
-	glTranslatef(33.0f, 2.0f, 71.5f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	glPushMatrix();		//34
-	glTranslatef(39.0f, 2.0f, 65.0f);
-	glScalef(1.0, 1.0, 1.0);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DibujaCaja(2);
-	glPopMatrix();
-
-	}
+void DibujaEscenarioBase() {
+
+		glEnable(GL_TEXTURE_2D);
+
+		//Plano del piso
+		glBindTexture(GL_TEXTURE_2D, textura[4].texID);
+		glBegin(GL_QUADS);
+		glNormal3f(0.0f, 1.0f, 0.0f);
+		glTexCoord2f(0.1f, 0.0f); glVertex3f(-42.5f, 0.0f, 78.0f);
+		glTexCoord2f(5.0f, 0.0f); glVertex3f(42.5f, 0.0f, 78.0f);
+		glTexCoord2f(5.0f, 5.0f); glVertex3f(42.5f, 0.0f, 2.0f);
+		glTexCoord2f(0.1f, 5.0f); glVertex3f(-42.5f, 0.0f, 2.0f);
+		glEnd();
+
+		//Cajas limite escenario izquierda
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 5.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 10.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 15.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 20.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 25.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 25.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 30.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 35.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 40.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 45.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 50.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 55.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 60.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 65.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 70.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-45.5f, 2.5f, 75.0f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		//Cajas limite escenario derecha
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 5.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 10.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 15.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 20.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 25.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 25.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 30.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 35.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 40.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 45.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 50.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 55.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 60.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 65.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 70.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(45.5f, 2.5f, 75.0f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(3);
+		glPopMatrix();
+
+		//Límite del escenario inferior
+
+		glPushMatrix();
+		glTranslatef(42.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(37.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(32.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(27.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(22.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(17.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(12.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(7.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(2.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-2.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-7.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-12.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-17.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-22.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-27.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-32.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-37.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-42.5f, 7.5f, 78.0f);
+		glScalef(0.7, 0.0, 0.7);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(4);
+		glPopMatrix();
+
+		// ------------------- CAJAS AMARILLAS -------------------//
+
+		// CAJAS [1,X]
+		glPushMatrix();
+		glTranslatef(-32.0f, 2.5f, 13.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-32.0f, 2.5f, 26.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-32.0f, 2.5f, 39.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-32.0f, 2.5f, 52.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		// CAJAS [2,X]
+		glPushMatrix();
+		glTranslatef(-18.0f, 2.5f, 13.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-18.0f, 2.5f, 26.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-18.0f, 2.5f, 39.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-18.0f, 2.5f, 52.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		// CAJAS [3,X]
+		glPushMatrix();
+		glTranslatef(-5.0f, 2.5f, 13.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-5.0f, 2.5f, 26.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-5.0f, 2.5f, 39.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-5.0f, 2.5f, 52.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		// CAJAS [4,X]
+		glPushMatrix();
+		glTranslatef(7.0f, 2.5f, 13.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(7.0f, 2.5f, 26.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(7.0f, 2.5f, 39.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(7.0f, 2.5f, 52.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		// CAJAS [5,X]
+		glPushMatrix();
+		glTranslatef(20.0f, 2.5f, 13.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(20.0f, 2.5f, 26.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(20.0f, 2.5f, 39.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(20.0f, 2.5f, 52.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		// CAJAS [6,X]
+		glPushMatrix();
+		glTranslatef(33.0f, 2.5f, 13.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(33.0f, 2.5f, 26.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(33.0f, 2.5f, 39.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(33.0f, 2.5f, 52.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		// CAJAS [X , 5]
+
+		glPushMatrix();
+		glTranslatef(-32.0f, 2.5f, 65.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-18.0f, 2.5f, 65.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-5.0f, 2.5f, 65.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(7.0f, 2.5f, 65.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(20.0f, 2.5f, 65.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(33.0f, 2.5f, 65.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		// CAJAS EXTRAS
+
+		glPushMatrix();
+		glTranslatef(33.0f, 2.5f, 32.5f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		//Caja [5.5 , 3]
+
+		glPushMatrix();
+		glTranslatef(26.5f, 2.5f, 39.0f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		//Caja [5 , 3.5]
+
+		glPushMatrix();
+		glTranslatef(20.0f, 2.5f, 45.5f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		//Caja [5.5 , 3]
+
+		glPushMatrix();
+		glTranslatef(26.5f, 2.5f, 52.5f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		//Caja [3, 4.5]
+
+		glPushMatrix();
+		glTranslatef(-5.0f, 2.5f, 58.5f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+		//Caja [6 , 4.5]
+
+		glPushMatrix();
+		glTranslatef(33.0f, 2.5f, 58.5f);
+		glScalef(0.7, 0.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(1);
+		glPopMatrix();
+
+
+		// CAJAS ROJAS
+
+		glPushMatrix();		//1
+		glTranslatef(-26.0f, 2.0f, 7.0f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//2
+		glTranslatef(1.0f, 2.0f, 7.0f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//3
+		glTranslatef(-26.0f, 2.0f, 13.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//4
+		glTranslatef(-11.5f, 2.0f, 13.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//5
+		glTranslatef(13.5f, 2.0f, 13.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//6
+		glTranslatef(26.5f, 2.0f, 20.0f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//7
+		glTranslatef(33.0f, 2.0f, 20.0f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//8
+		glTranslatef(1.0f, 2.0f, 26.0f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//9
+		glTranslatef(-38.5f, 2.0f, 32.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//10
+		glTranslatef(-24.5f, 2.0f, 32.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//11
+		glTranslatef(-18.0f, 2.0f, 32.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//12
+		glTranslatef(7.0f, 2.0f, 32.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//13
+		glTranslatef(13.5f, 2.0f, 32.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//14
+		glTranslatef(20.0f, 2.0f, 32.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//15
+		glTranslatef(26.5f, 2.0f, 32.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//16
+		glTranslatef(-11.5f, 2.0f, 39.0f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//17
+		glTranslatef(13.5f, 2.0f, 39.0f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//18
+		glTranslatef(39.0f, 2.0f, 39.0f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//19
+		glTranslatef(-11.5f, 2.0f, 45.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//20
+		glTranslatef(0.5f, 2.0f, 45.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//21
+		glTranslatef(-11.5f, 2.0f, 52.0f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//22
+		glTranslatef(-32.0f, 2.0f, 58.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//23
+		glTranslatef(-11.5f, 2.0f, 58.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//24
+		glTranslatef(7.0f, 2.0f, 58.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//25
+		glTranslatef(13.5f, 2.0f, 58.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//26
+		glTranslatef(26.5f, 2.0f, 58.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//27
+		glTranslatef(-38.5f, 2.0f, 65.0f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//28
+		glTranslatef(-38.5f, 2.0f, 71.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//29
+		glTranslatef(-24.5f, 2.0f, 71.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//30
+		glTranslatef(-18.0f, 2.0f, 71.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//31
+		glTranslatef(0.5f, 2.0f, 71.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//32
+		glTranslatef(13.5f, 2.0f, 71.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//33
+		glTranslatef(33.0f, 2.0f, 71.5f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+		glPushMatrix();		//34
+		glTranslatef(39.0f, 2.0f, 65.0f);
+		glScalef(1.0, 1.0, 1.0);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		DibujaCaja(2);
+		glPopMatrix();
+
+}
 
 void DibujaPersonaje()
 {
@@ -2779,63 +3119,65 @@ void DibujaParticulas()
 	glDisable(GL_LIGHTING);
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glEnable(GL_TEXTURE_2D);
 
 	glDepthMask(GL_FALSE);
 
 	glBindTexture(GL_TEXTURE_2D, textura[31].texID);
 
-	for(int loop=0; loop<MAX_PARTICULAS; loop++)
+	for (int loop = 0; loop<MAX_PARTICULAS; loop++)
 	{
-		float x=particle[loop].x;
-		float y=particle[loop].y;
-		float z=particle[loop].z;
+		float x = particle[loop].x;
+		float y = particle[loop].y;
+		float z = particle[loop].z;
 
 		// Se dibuja la particula usando los valores RGB, El desvanecimiento depende de su vida
-		glColor4f(0.3f,0.9f,0.2f,particle[loop].life);
+		glColor4f(0.9f, 0.5f, 0.2f, particle[loop].life);
 
 		glBegin(GL_TRIANGLE_STRIP); // Se construye un Quad a partir de un Triangle Strip
-			glTexCoord2f(1,1); glVertex3f(x+1.0f,y+1.0f,z); // Superior derecha
-			glTexCoord2f(0,1); glVertex3f(x-1.0f,y+1.0f,z); // Inferior derecha
-			glTexCoord2f(1,0); glVertex3f(x+1.0f,y-1.0f,z); // Superior izquierda
-			glTexCoord2f(0,0); glVertex3f(x-1.0f,y-1.0f,z); // Inferior izquierda
+		glTexCoord2f(1, 1); glVertex3f(x + 2.0f, y + 2.0f, z + 2.0f); // Superior derecha
+		glTexCoord2f(1, 0); glVertex3f(x + 2.0f, y + 2.0f, z - 2.0f); // Inferior derecha
+		glTexCoord2f(0, 1); glVertex3f(x - 2.0f, y + 2.0f, z + 2.0f); // Superior izquierda
+		glTexCoord2f(0, 0); glVertex3f(x - 2.0f, y + 2.0f, z - 2.0f); // Inferior izquierda
 		glEnd();
+		particle[loop].x += particle[loop].xi;	// Movimiento en el eje X a velocidad X
+		particle[loop].y += particle[loop].yi;	// Movimiento en el eje Y a velocidad Y
+		particle[loop].z += particle[loop].zi;	// Movimiento en el eje Z a velocidad Z
 
-		particle[loop].x+=particle[loop].xi;	// Movimiento en el eje X a velocidad X
-		particle[loop].y+=particle[loop].yi;	// Movimiento en el eje Y a velocidad Y
-		particle[loop].z+=particle[loop].zi;	// Movimiento en el eje Z a velocidad Z
+												//Efecto de gravedad
+		particle[loop].xi += particle[loop].xg;
+		particle[loop].yi += particle[loop].yg;
+		particle[loop].zi += particle[loop].zg;
 
-		//Efecto de gravedad
-		particle[loop].xi+=particle[loop].xg;  
-		particle[loop].yi+=particle[loop].yg;
-		particle[loop].zi+=particle[loop].zg;
+		particle[loop].life -= particle[loop].fade; // Se reduce la vida de las partículas una cantidad "Fade"
 
-		particle[loop].life-=particle[loop].fade; // Se reduce la vida de las partículas una cantidad "Fade"
-
-		if (particle[loop].life < 0.7f) // Si la vida de la partícula esta por agotarse
+		if (particle[loop].life < 0.2f) // Si la vida de la partícula esta por agotarse
 		{
-			particle[loop].life=1.0f; // Se le da nueva vida
-			particle[loop].fade=float(rand()%100)/1000.0f+0.005f; // Un valor aleatorio de desvanecimiento
-			
-			//Posición inicial de cada particula
-			particle[loop].x= float((rand()%10)-5.0f)/10.0f;
-			particle[loop].y= float((rand()%100)-50.0f)/10.0f;
-			particle[loop].z= float((rand()%10)-5.0f)/10.0f;
+			particle[loop].life = 2.0f; // Se le da nueva vida
+			particle[loop].fade = 0.02; // Un valor aleatorio de desvanecimiento
+
+										//Posición inicial de cada particula
+			particle[loop].x = 0;
+			particle[loop].y = 0;
+			particle[loop].z = 0;
 
 			//Gravedad
-			particle[loop].xg= 0.0f;
-			particle[loop].yg= 0.01f;
-			particle[loop].zg= 0.0f;
+			particle[loop].xg = 0;
+			particle[loop].yg = 0;
+			particle[loop].zg = 0;
 			
 			//Velocidad
-			particle[loop].xi = float((rand()%60)-3.0f)/100.0f;
-			particle[loop].yi = float((rand()%6)-3.0f)/100.0f;
-			particle[loop].zi = float((rand()%10)-5.0f)/100.0f;
-		} 
-	}      
+			particle[loop].xi = float((rand() % 50 + 1) - 25.0f)/100.0f;
+			particle[loop].yi = 0;
+			particle[loop].zi = 0;
+		}
 
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		posPartX = particle[loop].x + 2.0f;
+		posPartY = particle[loop].y + 2.0f;
+		posPartZ = particle[loop].z + 2.0f;
+
+	}
 
 	glDepthMask(GL_TRUE);
 
@@ -2865,25 +3207,29 @@ int RenderizaEscena(GLvoid)
 		sonidoF[0].pausaSonido(true);
 		sonidoF[1].volumenSonido(0.5f);
 		sonidoF[1].pausaSonido(false);
-	//	gluLookAt(0.0f, 115.0f, 44.0f, 0.0f, -10.0f, 39.0f, 0.0f, 1.0f, 0.0f);
-		gluLookAt(player1.PosicionObj.x - 10.0f, player1.PosicionObj.y + 30.0f, player1.PosicionObj.z + 40.0f,
+		gluLookAt(0.0f, 115.0f, 44.0f, 0.0f, -10.0f, 39.0f, 0.0f, 1.0f, 0.0f);
+	/*	gluLookAt(player1.PosicionObj.x - 10.0f, player1.PosicionObj.y + 30.0f, player1.PosicionObj.z + 40.0f,
 			player1.PosicionObj.x, player1.PosicionObj.y + 18.0f, player1.PosicionObj.z,
-			0.0f, 1.0f, 0.0f);
-
+			0.0f, 1.0f, 0.0f);*/
 	}
 					
 	ActualizaLuzParam();
 		
 	glDisable(GL_LIGHT0);
 	glEnable(GL_LIGHT1);
-
+	
 	DibujaEscenarioBase();
 	
 	
-	dibujaCajaColision(&cajaPersonaje);
+//	dibujaCajaColision(&cajaPersonaje);
+	dibujaCajaColision(&cajaBomba);
+
+	dibujaCajaColision(&cajaParticula);
+
 	for (int i = 0; i < 100; i++)
 	{
 		dibujaCajaColision(&cajaEscenario[i]);
+
 	}
 	
 	if(player1.visible == true)
@@ -2895,12 +3241,14 @@ int RenderizaEscena(GLvoid)
 			DibujaPersonaje();
 		glPopMatrix();
 	}
-
-	//Al presionar b y dejar una bomba
-	if (timerBomba.TiempoActual() <= 1800)
-	{
-		lanzaBomba();
-	}
+	
+	
+	/*glPushMatrix();
+	glTranslatef(0, 2.0f, 30.0f);
+	DibujaParticulas();
+	glRotatef(90, 0, 1.0f, 0);
+	DibujaParticulas();
+	glPopMatrix();*/
 
 	glColorMask(0,0,0,0);
 	glDepthMask(0);
@@ -2932,13 +3280,35 @@ int RenderizaEscena(GLvoid)
 
 	DibujaEscenarioBase();
 
-	if(player1.visible == true)
+
+	//Al presionar b y dejar una bomba
+	if (timerBomba.TiempoActual() <= 1800)
+	{
+		actualizaCajaBomba();
+		actualizaCajaParticula();
+		lanzaBomba();
+	}
+
+	if (timerBomba.TiempoActual() > 1800 && timerBomba.TiempoActual() <= 2000)
 	{
 		glPushMatrix();
-			glTranslatef(player1.PosicionObj.x, player1.PosicionObj.y, player1.PosicionObj.z);
-			glRotatef(player1.AngObj, 0.0f, 1.0f, 0.0f);
-			glScalef(player1.escalaX,player1.escalaY,player1.escalaZ);
-			DibujaPersonaje();
+		glTranslatef(PosicionBomba.x, PosicionBomba.y + 2.0f, PosicionBomba.z);
+		iniCajaBomba();
+		iniCajaParticula();
+		DibujaParticulas();
+		glRotatef(90.0f, 0, 1.0f, 0);
+		DibujaParticulas();
+		glPopMatrix();
+	}
+
+
+	if (player1.visible == true)
+	{
+		glPushMatrix();
+		glTranslatef(player1.PosicionObj.x, player1.PosicionObj.y, player1.PosicionObj.z);
+		glRotatef(player1.AngObj, 0.0f, 1.0f, 0.0f);
+		glScalef(player1.escalaX, player1.escalaY, player1.escalaZ);
+		DibujaPersonaje();
 		glPopMatrix();
 	}
 
@@ -2946,8 +3316,14 @@ int RenderizaEscena(GLvoid)
 
 	DibujaTextos();
 	actualizaMovPersonaje();
-
-	//Cambios para FPS
+	if (colisionInicialBomba)
+	{
+		actualizaMovPersonaje();
+		if (sqrt(pow((player1.PosicionObj.x - PosicionBomba.x),2.0f) + pow((player1.PosicionObj.z - PosicionBomba.z), 2.0f)) >= 5.0f)
+			colisionInicialBomba = false;
+	}
+	if (existeBomba && !colisionInicialBomba)
+		actualizaMovPersonaje2();
 	CalculateFrameRate();
 
 	return TRUE;
@@ -3602,7 +3978,7 @@ void manejaEventosMain()
 	{
 		if(infGame.pausa == 0)	//Sin pausa
 		{
-			if(controlFunc.obtieneEstadoTecla(0) == 1) //Up
+			if(controlFunc.obtieneEstadoTecla(0) == 1 && controlFunc.obtieneEstadoTecla(2) == 0 && controlFunc.obtieneEstadoTecla(3) == 0) //Up
 			{
 				if(player1.kick==false && player1.saltando == false)
 				{
@@ -3644,7 +4020,7 @@ void manejaEventosMain()
 				}
 			}
 
-			if(controlFunc.obtieneEstadoTecla(1) == 1) //Down
+			if(controlFunc.obtieneEstadoTecla(1) == 1 && controlFunc.obtieneEstadoTecla(2) == 0 && controlFunc.obtieneEstadoTecla(3) == 0) //Down
 			{
 				if(player1.kick==false && player1.saltando == false)
 				{
@@ -3686,7 +4062,7 @@ void manejaEventosMain()
 				}
 			}
 
-			if(controlFunc.obtieneEstadoTecla(2) == 1) //Left
+			if(controlFunc.obtieneEstadoTecla(2) == 1 && controlFunc.obtieneEstadoTecla(0) == 0 && controlFunc.obtieneEstadoTecla(1) == 0) //Left
 			{
 				if(player1.kick==false && player1.saltando == false)
 				{
@@ -3728,7 +4104,7 @@ void manejaEventosMain()
 				}
 			}
 
-			if(controlFunc.obtieneEstadoTecla(3) == 1) //Right
+			if(controlFunc.obtieneEstadoTecla(3) == 1 && controlFunc.obtieneEstadoTecla(0) == 0 && controlFunc.obtieneEstadoTecla(1) == 0) //Right
 			{
 				if(player1.kick==false && player1.saltando == false)
 				{
@@ -3777,9 +4153,10 @@ void manejaEventosMain()
 					timerBomba.iniciaTimer();
 					PosicionBomba = player1.PosicionObj;
 					existeBomba = true;
+					colisionInicialBomba = true;
 				}
 				//Cuando desaparece la bomba, ya se puede poner otra bomba
-				if (timerBomba.TiempoActual() > 1800)
+				if (timerBomba.TiempoActual() > 2300)
 					existeBomba = false;
 			}
 

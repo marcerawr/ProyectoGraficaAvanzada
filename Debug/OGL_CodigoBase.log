@@ -1,13 +1,4 @@
 ﻿cl : Command line warning D9007: '/Gm' requires '/Zi or /ZI'; option ignored
-  3ds.cpp
-  Audio.cpp
-  cargadorTGA.cpp
-  Control.cpp
-  Font.cpp
   Main.cpp
-  Materiales.cpp
-  Timer.cpp
-  Vector.cpp
-  Generating Code...
   OGL_CodigoBase.vcxproj -> D:\Users\marce\Documents\Noveno Semestre\Computacion Grafica Avanzada\Programa\ProyectoGraficaAvanzada\Debug\OGL_CodigoBase.exe
   OGL_CodigoBase.vcxproj -> D:\Users\marce\Documents\Noveno Semestre\Computacion Grafica Avanzada\Programa\ProyectoGraficaAvanzada\Debug\OGL_CodigoBase.pdb (Full PDB)
