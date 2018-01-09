@@ -39,7 +39,7 @@ particles particle[MAX_PARTICULAS];	// Arreglo de partículas
 #define FILE_NAME7c  "Modelos/stewie_brazoizq_a.3ds"
 #define FILE_NAME8c  "Modelos/stewie_brazoizq_b.3ds"
 #define FILE_NAME9c  "Modelos/stewie_bota.3ds"
-#define FILE_NAME1e  "Modelos/bomb.3DS"
+#define FILE_NAME1e  "Modelos/stewie.3DS"
 
 //Contenedor de texturas del modelo
 CTga textureModel1c[20];
@@ -3201,10 +3201,10 @@ int RenderizaEscena(GLvoid)
 		sonidoF[0].pausaSonido(true);
 		sonidoF[1].volumenSonido(0.5f);
 		sonidoF[1].pausaSonido(false);
-		//gluLookAt(0.0f, 115.0f, 44.0f, 0.0f, -10.0f, 39.0f, 0.0f, 1.0f, 0.0f);
-		gluLookAt(player1.PosicionObj.x - 10.0f, player1.PosicionObj.y + 30.0f, player1.PosicionObj.z + 40.0f,
+		gluLookAt(0.0f, 115.0f, 44.0f, 0.0f, -10.0f, 39.0f, 0.0f, 1.0f, 0.0f);
+		/*gluLookAt(player1.PosicionObj.x - 10.0f, player1.PosicionObj.y + 30.0f, player1.PosicionObj.z + 40.0f,
 		player1.PosicionObj.x, player1.PosicionObj.y + 18.0f, player1.PosicionObj.z,
-		0.0f, 1.0f, 0.0f);
+		0.0f, 1.0f, 0.0f);*/
 	}
 					
 	ActualizaLuzParam();
